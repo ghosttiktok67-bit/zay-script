@@ -7,8 +7,8 @@ local player = Players.LocalPlayer
 
 -- ✏️ MODIFIE ICI SEULEMENT
 local Whitelist = {
-    123456789, -- ⚠️ REMPLACE PAR TON USERID
-    -- 987654321, -- ajoute d'autres UserId si tu veux
+    https://www.roblox.com/fr/users/9173033891/profile, -- ⚠️ REMPLACE PAR TON USERID
+    -- https://www.roblox.com/fr/users/2379903548/profile, -- ajoute d'autres UserId si tu veux
 }
 
 local function isWhitelisted(userId)
