@@ -1,19 +1,33 @@
--- =========================
--- WHITELIST (USERID)
--- =========================
-
+-- ======================================
+-- Services
+-- ======================================
 local Players = game:GetService("Players")
-local player = Players.LocalPlayer
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Workspace = game:GetService("Workspace")
+local TweenService = game:GetService("TweenService")
+local StarterGui = game:GetService("StarterGui")
 
--- ✏️ MODIFIE ICI SEULEMENT
+-- ======================================
+-- Joueur et personnage
+-- ======================================
+local player = Players.LocalPlayer
+local char = player.Character or player.CharacterAdded:Wait()
+local humanoid = char:WaitForChild("Humanoid")
+local hrp = char:WaitForChild("HumanoidRootPart")
+local backpack = player:WaitForChild("Backpack")
+
+-- ======================================
+-- 🔐 WHITELIST PAR USERID (SAFE)
+-- ======================================
 local Whitelist = {
-    9173033891, -- ⚠️ REMPLACE PAR TON USERID
-    -- , -- ajoute d'autres UserId si tu veux
+    9173033891, -- 🔴 REMPLACE PAR TON USERID
+    -- 987654321, -- autres UserId si besoin
 }
 
 local function isWhitelisted(userId)
     for _, id in ipairs(Whitelist) do
-        if id == userId then
+        if userId == id then
             return true
         end
     end
@@ -25,139 +39,84 @@ if not isWhitelisted(player.UserId) then
     return
 end
 
--- =========================
--- Teleport + Auto Block System
--- =========================
-local StarterGui = game:GetService("StarterGui")
-local UserInputService = game:GetService("UserInputService")
+-- ======================================
+-- Notifications stylées
+-- ======================================
+local playerGui = player:WaitForChild("PlayerGui")
+local notifGui = Instance.new("ScreenGui")
+notifGui.Name = "NotifGui"
+notifGui.ResetOnSpawn = false
+notifGui.Parent = playerGui
 
-local backpack = player:WaitForChild("Backpack")
-local char = player.Character or player.CharacterAdded:Wait()
-local humanoid = char:WaitForChild("Humanoid")
-local hrp = char:WaitForChild("HumanoidRootPart")
+local function notify(text,color)
+    color = color or Color3.fromRGB(255,255,255)
+    local notif = Instance.new("Frame")
+    notif.Size = UDim2.new(0,300,0,50)
+    notif.Position = UDim2.new(0.5,-150,0,50)
+    notif.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    notif.BorderSizePixel = 2
+    notif.BorderColor3 = color
+    notif.Parent = notifGui
 
--- GUI Setup
-local ScreenGui = Instance.new("ScreenGui", player.PlayerGui)
-ScreenGui.Name = "ZayTeleport"
-ScreenGui.ResetOnSpawn = false
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1,0,1,0)
+    label.BackgroundTransparency = 1
+    label.Text = text
+    label.TextColor3 = color
+    label.Font = Enum.Font.GothamBold
+    label.TextScaled = true
+    label.TextStrokeTransparency = 0.5
+    label.TextWrapped = true
+    label.Parent = notif
 
-local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.new(0, 220, 0, 220)
-Frame.Position = UDim2.new(0.5, -110, 0.5, -110)
-Frame.BackgroundColor3 = Color3.fromRGB(2,2,2)
-Frame.Active = true
-Frame.Draggable = true
-Frame.BorderSizePixel = 0
-Instance.new("UICorner", Frame).CornerRadius = UDim.new(0, 15)
+    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    TweenService:Create(notif, tweenInfo, {Position = UDim2.new(0.5,-150,0,70)}):Play()
 
-local Stroke = Instance.new("UIStroke", Frame)
-Stroke.Color = Color3.fromRGB(255,255,255)
-Stroke.Thickness = 1
-
-local Title = Instance.new("TextLabel", Frame)
-Title.Size = UDim2.new(1, -20, 0, 35)
-Title.Position = UDim2.new(0, 10, 0, 10)
-Title.Text = "Zay The Best"
-Title.TextColor3 = Color3.new(1,1,1)
-Title.Font = Enum.Font.GothamBold
-Title.TextSize = 18
-Title.BackgroundTransparency = 1
-Title.TextXAlignment = Enum.TextXAlignment.Center
-
--- Teleport Button
-local TeleportButton = Instance.new("TextButton", Frame)
-TeleportButton.Size = UDim2.new(0, 180, 0, 50)
-TeleportButton.Position = UDim2.new(0, 20, 0, 60)
-TeleportButton.Text = "Teleport"
-TeleportButton.TextColor3 = Color3.fromRGB(0,0,0)
-TeleportButton.Font = Enum.Font.GothamBold
-TeleportButton.TextSize = 16
-TeleportButton.BackgroundColor3 = Color3.fromRGB(255,255,255)
-TeleportButton.BorderSizePixel = 0
-Instance.new("UICorner", TeleportButton).CornerRadius = UDim.new(0, 10)
-
--- Keybind Button
-local KeybindButton = Instance.new("TextButton", Frame)
-KeybindButton.Size = UDim2.new(0, 180, 0, 50)
-KeybindButton.Position = UDim2.new(0, 20, 0, 120)
-KeybindButton.Text = "Keybind: [F]"
-KeybindButton.TextColor3 = Color3.fromRGB(0,0,0)
-KeybindButton.Font = Enum.Font.GothamBold
-KeybindButton.TextSize = 16
-KeybindButton.BackgroundColor3 = Color3.fromRGB(255,255,255)
-KeybindButton.BorderSizePixel = 0
-Instance.new("UICorner", KeybindButton).CornerRadius = UDim.new(0, 10)
-
--- Saved Locations
-local spots = {
-    CFrame.new(-402.18, -6.34, 131.83) * CFrame.Angles(0, math.rad(-20.08), 0),
-    CFrame.new(-416.66, -6.34, -2.05) * CFrame.Angles(0, math.rad(-62.89), 0),
-    CFrame.new(-329.37, -4.68, 18.12) * CFrame.Angles(0, math.rad(-30.53), 0),
-}
-
-local REQUIRED_TOOL = "Flying Carpet"
-local teleportKey = Enum.KeyCode.F
-local waitingForKey = false
-local lastStealer = nil
-
--- Equip Flying Carpet
-local function equipFlyingCarpet()
-    local tool = char:FindFirstChild(REQUIRED_TOOL) or backpack:FindFirstChild(REQUIRED_TOOL)
-    if not tool then
-        warn("Flying Carpet not found!")
-        return false
-    end
-    humanoid:EquipTool(tool)
-    while char:FindFirstChildOfClass("Tool") ~= tool do task.wait() end
-    return true
-end
-
--- Block Function
-local function block(plr)
-    if not plr or plr == player then return end
-    pcall(function()
-        StarterGui:SetCore("PromptBlockPlayer", plr)
+    task.delay(2, function()
+        local tweenOut = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        TweenService:Create(notif, tweenOut, {
+            Position = UDim2.new(0.5,-150,0,50),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0
+        }):Play()
+        task.wait(0.35)
+        notif:Destroy()
     end)
 end
 
--- Teleport + Auto Block
-local function teleportAll()
-    if not equipFlyingCarpet() then return end
+-- ======================================
+-- GUI stylée
+-- ======================================
+local ScreenGui = Instance.new("ScreenGui", playerGui)
+ScreenGui.Name = "ZayTeleportGUI"
+ScreenGui.ResetOnSpawn = false
 
-    for _, plr in ipairs(Players:GetPlayers()) do
-        if plr ~= player then
-            lastStealer = plr
-            break
-        end
-    end
+local Frame = Instance.new("Frame", ScreenGui)
+Frame.Size = UDim2.new(0,280,0,300)
+Frame.Position = UDim2.new(0.5,-140,0.5,-150)
+Frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
+Frame.BorderSizePixel = 0
+Frame.Active = true
+Frame.Draggable = true
+Instance.new("UICorner", Frame).CornerRadius = UDim.new(0,20)
 
-    for _, spot in ipairs(spots) do
-        hrp.CFrame = spot
-        task.wait(0.12)
-    end
-
-    if lastStealer then
-        block(lastStealer)
-    end
-end
-
--- GUI Button Connections
-TeleportButton.MouseButton1Click:Connect(teleportAll)
-
--- Keybind Setup
-KeybindButton.MouseButton1Click:Connect(function()
-    KeybindButton.Text = "Press a key..."
-    waitingForKey = true
+-- Rainbow border
+local Stroke = Instance.new("UIStroke", Frame)
+Stroke.Thickness = 3
+local hue = 0
+RunService.RenderStepped:Connect(function(dt)
+    hue = (hue + dt*0.5) % 1
+    Stroke.Color = Color3.fromHSV(hue,1,1)
 end)
 
-UserInputService.InputBegan:Connect(function(input, gameProcessedEvent)
-    if gameProcessedEvent then return end
-
-    if waitingForKey and input.UserInputType == Enum.UserInputType.Keyboard then
-        teleportKey = input.KeyCode
-        KeybindButton.Text = "Keybind: [" .. teleportKey.Name .. "]"
-        waitingForKey = false
-    elseif input.UserInputType == Enum.UserInputType.Keyboard and input.KeyCode == teleportKey then
-        teleportAll()
-    end
-end)
+-- Title
+local Title = Instance.new("TextLabel", Frame)
+Title.Size = UDim2.new(1,-20,0,40)
+Title.Position = UDim2.new(0,10,0,10)
+Title.Text = "Zay The Best"
+Title.TextColor3 = Color3.fromRGB(255,255,255)
+Title.Font = Enum.Font.GothamBold
+Title.TextSize = 22
+Title.BackgroundTransparency = 1
+Title.TextStrokeTransparency = 0.2
+Title.TextXAlignment = Enum.TextXAlignment.Center
