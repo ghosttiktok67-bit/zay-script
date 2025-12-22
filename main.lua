@@ -22,9 +22,16 @@ local playerGui = player:WaitForChild("PlayerGui")
 -- Whitelist par UserId
 -- ======================================
 local Whitelist = {
-    9173033891, -- Remplace par ton UserId
-    5182071786,  
+    9173033891, -- moi
+    5182071786, -- Ami 1
+    1234567890, -- Ami 2
+    9876543210, -- Ami 3
+    1122334455, -- Ami 4
+    5566778899, -- Ami 5
+    1029384756, -- Ami 6
+    5647382910, -- Ami 7
 }
+
 
 local function isWhitelisted(userId)
     for _, id in pairs(Whitelist) do
