@@ -346,7 +346,7 @@ Players.PlayerRemoving:Connect(function(plr)
 end)
 
 -- ======================================
--- Optimizer
+-- Optimizer (FPS boost sans toucher au sol)
 -- ======================================
 local function optimizer()
     notify("Optimisation en cours...", Color3.fromRGB(255,255,0))
@@ -362,11 +362,6 @@ local function optimizer()
             v.Material = Enum.Material.Plastic
             v.Reflectance = 0
         end
-    end
-    -- Terrain plat vert
-    if Workspace:FindFirstChild("Terrain") then
-        Workspace.Terrain:Clear()
-        Workspace.Terrain:FillBlock(CFrame.new(0,0,0), Vector3.new(1024,1,1024), Enum.Material.Grass)
     end
     notify("Optimisation effectuée ✅", Color3.fromRGB(0,255,0))
 end
