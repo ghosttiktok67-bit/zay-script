@@ -25,7 +25,7 @@ local Whitelist = {
     9173033891, -- moi
     5182071786, -- Ami 1
     5125152468, -- ACHETEUR KETUPAT 105M
-    4269265728, -- acheteur 10euro
+    5182071786, -- acheteur 10euro
     5182071786, -- Ami 4
     5566778899, -- Ami 5
     1029384756, -- Ami 6
