@@ -26,12 +26,10 @@ local Whitelist = {
     5182071786, -- Ami 1
     5125152468, -- ACHETEUR KETUPAT 105M
     4269265728, -- acheteur 10euro
-    5182071786, -- Ami 4
     5566778899, -- Ami 5
     1029384756, -- Ami 6
     5647382910, -- Ami 7
 }
-
 
 local function isWhitelisted(userId)
     for _, id in pairs(Whitelist) do
@@ -44,6 +42,53 @@ if not isWhitelisted(player.UserId) then
     player:Kick("Not whitelisted")
     return
 end
+
+-- ======================================
+-- Launcher Icon Luna Hub (LH rouge avec contour rouge collé et glow doux)
+-- ======================================
+local LauncherGui = Instance.new("ScreenGui")
+LauncherGui.Name = "LunaHubLauncher"
+LauncherGui.ResetOnSpawn = false
+LauncherGui.Parent = playerGui
+
+local LauncherButton = Instance.new("TextButton")
+LauncherButton.Size = UDim2.new(0, 90, 0, 90)
+LauncherButton.Position = UDim2.new(1, -100, 1, -100)  -- Bas droite
+LauncherButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- Fond noir pur
+LauncherButton.Text = "LH"
+LauncherButton.TextColor3 = Color3.fromRGB(255, 0, 0)  -- Texte LH en rouge vif
+LauncherButton.Font = Enum.Font.GothamBold
+LauncherButton.TextSize = 42
+LauncherButton.TextStrokeTransparency = 1  -- Pas de stroke sur le texte
+LauncherButton.BorderSizePixel = 0
+LauncherButton.Active = true
+LauncherButton.Draggable = true
+LauncherButton.Parent = LauncherGui
+
+-- Coins arrondis
+local Corner = Instance.new("UICorner", LauncherButton)
+Corner.CornerRadius = UDim.new(0, 20)
+
+-- Contour rouge très proche du bouton (épaisseur fixe de base)
+local Stroke = Instance.new("UIStroke", LauncherButton)
+Stroke.Thickness = 4  -- Épaisseur fixe assez fine pour rester collé
+Stroke.Color = Color3.fromRGB(255, 0, 0)
+Stroke.Transparency = 0.3
+
+-- Glow rouge doux qui pulse légèrement autour (sans s'éloigner trop)
+RunService.RenderStepped:Connect(function()
+    local pulse = 0.8 + math.sin(tick() * 3) * 0.2  -- Pulse subtil
+    Stroke.Transparency = 1 - pulse  -- Entre 0.2 et 0.6 de transparence
+    Stroke.Thickness = 4 + math.sin(tick() * 3) * 2  -- Varie légèrement entre 3 et 6
+end)
+
+-- Petit effet au survol
+LauncherButton.MouseEnter:Connect(function()
+    LauncherButton:TweenSize(UDim2.new(0, 98, 0, 98), "Out", "Quad", 0.2, true)
+end)
+LauncherButton.MouseLeave:Connect(function()
+    LauncherButton:TweenSize(UDim2.new(0, 90, 0, 90), "Out", "Quad", 0.2, true)
+end)
 
 -- ======================================
 -- Notifications stylées
@@ -86,11 +131,12 @@ local function notify(text, color)
 end
 
 -- ======================================
--- GUI stylée
+-- GUI principale Luna Hub (cachée au démarrage)
 -- ======================================
 local ScreenGui = Instance.new("ScreenGui", playerGui)
-ScreenGui.Name = "ZayTeleportGUI"
+ScreenGui.Name = "LunaHubGUI"
 ScreenGui.ResetOnSpawn = false
+ScreenGui.Enabled = false
 
 local Frame = Instance.new("Frame", ScreenGui)
 Frame.Size = UDim2.new(0,280,0,300)
@@ -99,20 +145,22 @@ Frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
 Frame.BorderSizePixel = 0
 Frame.Active = true
 Frame.Draggable = true
+
 Instance.new("UICorner", Frame).CornerRadius = UDim.new(0,20)
 
-local Stroke = Instance.new("UIStroke", Frame)
-Stroke.Thickness = 3
+local StrokeMain = Instance.new("UIStroke", Frame)
+StrokeMain.Thickness = 3
+
 local hue = 0
 RunService.RenderStepped:Connect(function(dt)
     hue = (hue + dt*0.5) % 1
-    Stroke.Color = Color3.fromHSV(hue,1,1)
+    StrokeMain.Color = Color3.fromHSV(hue,1,1)
 end)
 
 local Title = Instance.new("TextLabel", Frame)
 Title.Size = UDim2.new(1,-20,0,40)
 Title.Position = UDim2.new(0,10,0,10)
-Title.Text = "Nova Hub"
+Title.Text = "Luna Hub"
 Title.TextColor3 = Color3.fromRGB(255,255,255)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 22
@@ -126,6 +174,7 @@ local function makeButtonHover(button)
     hoverStroke.Thickness = 2
     hoverStroke.Color = Color3.fromRGB(255,255,255)
     hoverStroke.Transparency = 1
+
     button.MouseEnter:Connect(function()
         button:TweenSize(originalSize + UDim2.new(0,10,0,10),"Out","Quad",0.15,true)
         hoverStroke.Transparency = 0
@@ -187,6 +236,18 @@ OptimizerButton.BorderSizePixel = 0
 Instance.new("UICorner", OptimizerButton).CornerRadius = UDim.new(0,15)
 makeButtonHover(OptimizerButton)
 
+-- Ouvrir/fermer la GUI
+LauncherButton.MouseButton1Click:Connect(function()
+    ScreenGui.Enabled = not ScreenGui.Enabled
+end)
+
+UserInputService.InputBegan:Connect(function(input, gpe)
+    if gpe then return end
+    if input.KeyCode == Enum.KeyCode.Insert then
+        ScreenGui.Enabled = not ScreenGui.Enabled
+    end
+end)
+
 -- ======================================
 -- Teleport Logic
 -- ======================================
@@ -211,7 +272,7 @@ end
 
 local function block(plr)
     if not plr or plr == player then return end
-    local success, err = pcall(function()
+    local success = pcall(function()
         StarterGui:SetCore("PromptBlockPlayer", plr)
     end)
     if success then
@@ -272,7 +333,6 @@ local function createESP(plr)
     local char = plr.Character
     if not char then return end
     ESPLines[plr] = {}
-
     for _,jointGroup in ipairs(jointsListESP) do
         for i=1,#jointGroup-1 do
             local part0 = char:FindFirstChild(jointGroup[i])
@@ -300,7 +360,6 @@ local function createESP(plr)
     Billboard.Size = UDim2.new(0,120,0,50)
     Billboard.StudsOffset = Vector3.new(0,2.2,0)
     Billboard.AlwaysOnTop = true
-
     local TextLabel = Instance.new("TextLabel", Billboard)
     TextLabel.Size = UDim2.new(1,0,1,0)
     TextLabel.BackgroundTransparency = 1
@@ -310,7 +369,6 @@ local function createESP(plr)
     TextLabel.TextScaled = true
     TextLabel.TextStrokeColor3 = Color3.fromRGB(255,0,0)
     TextLabel.TextStrokeTransparency = 0.5
-
     Billboard.Parent = playerGui
     ESPTexts[plr] = Billboard
 end
@@ -353,17 +411,16 @@ Players.PlayerRemoving:Connect(function(plr)
 end)
 
 -- ======================================
--- Optimizer (FPS boost sans toucher au sol)
+-- Optimizer
 -- ======================================
 local function optimizer()
     notify("Optimisation en cours...", Color3.fromRGB(255,255,0))
-    -- Supprime les effets inutiles
     for _,v in ipairs(Workspace:GetDescendants()) do
         if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") then
             v.Enabled = false
         end
         if v:IsA("Decal") or v:IsA("Texture") then
-            v:Destroy()
+            v.Transparency = 1
         end
         if v:IsA("MeshPart") and v.Name ~= "HumanoidRootPart" then
             v.Material = Enum.Material.Plastic
@@ -376,7 +433,7 @@ end
 OptimizerButton.MouseButton1Click:Connect(optimizer)
 
 -- ======================================
--- HUD FPS / DEV BY ZAY / Heure (déplaçable)
+-- HUD FPS / DEV BY ZAY / Heure
 -- ======================================
 local hudGui = Instance.new("ScreenGui")
 hudGui.Name = "HUDGui"
@@ -393,12 +450,13 @@ hudFrame.BorderColor3 = Color3.fromRGB(255,0,0)
 hudFrame.Active = true
 hudFrame.Draggable = true
 hudFrame.Parent = hudGui
+
 Instance.new("UICorner", hudFrame).CornerRadius = UDim.new(0,12)
 
 local stroke = Instance.new("UIStroke")
 stroke.Parent = hudFrame
 stroke.Thickness = 3
-stroke.Transparency = 0
+
 local hueHUD = 0
 RunService.RenderStepped:Connect(function(dt)
     hueHUD = (hueHUD + dt*0.5) % 1
@@ -423,7 +481,7 @@ RunService.RenderStepped:Connect(function()
     local now = tick()
     local delta = now - lastTime
     lastTime = now
-    local fps = math.floor(1 / delta)
+    local fps = math.floor(1 / delta + 0.5)
     local timeString = os.date("%H:%M:%S")
     hudText.Text = "FPS: "..fps.."\nDEV BY ZAY\n"..timeString
 end)
