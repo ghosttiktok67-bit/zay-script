@@ -105,7 +105,7 @@ end)
 local Title = Instance.new("TextLabel", Frame)
 Title.Size = UDim2.new(1,-20,0,40)
 Title.Position = UDim2.new(0,10,0,10)
-Title.Text = "Zay The Best"
+Title.Text = "Nova Hub"
 Title.TextColor3 = Color3.fromRGB(255,255,255)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 22
