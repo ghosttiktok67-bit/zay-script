@@ -23,7 +23,7 @@ local playerGui = player:WaitForChild("PlayerGui")
 -- ======================================
 local Whitelist = {
     9173033891, -- Remplace par ton UserId
-    5182071786,  -- Ajouter d'autres UserId si besoin
+    5182071786,  
 }
 
 local function isWhitelisted(userId)
@@ -168,6 +168,18 @@ ESPButton.BorderSizePixel = 0
 Instance.new("UICorner", ESPButton).CornerRadius = UDim.new(0,15)
 makeButtonHover(ESPButton)
 
+local OptimizerButton = Instance.new("TextButton", Frame)
+OptimizerButton.Size = UDim2.new(0,180,0,50)
+OptimizerButton.Position = UDim2.new(0,50,0,250)
+OptimizerButton.Text = "Optimizer"
+OptimizerButton.Font = Enum.Font.GothamBold
+OptimizerButton.TextSize = 18
+OptimizerButton.BackgroundColor3 = Color3.fromRGB(255,255,255)
+OptimizerButton.TextColor3 = Color3.fromRGB(0,0,0)
+OptimizerButton.BorderSizePixel = 0
+Instance.new("UICorner", OptimizerButton).CornerRadius = UDim.new(0,15)
+makeButtonHover(OptimizerButton)
+
 -- ======================================
 -- Teleport Logic
 -- ======================================
@@ -234,7 +246,7 @@ UserInputService.InputBegan:Connect(function(input,gpe)
 end)
 
 -- ======================================
--- ESP Stylé Squelette Rouge + pseudo + glow
+-- ESP Stylé
 -- ======================================
 local ESPEnabled = false
 local ESPLines = {}
@@ -331,4 +343,85 @@ end)
 
 Players.PlayerRemoving:Connect(function(plr)
     removeESP(plr)
+end)
+
+-- ======================================
+-- Optimizer
+-- ======================================
+local function optimizer()
+    notify("Optimisation en cours...", Color3.fromRGB(255,255,0))
+    -- Supprime les effets inutiles
+    for _,v in ipairs(Workspace:GetDescendants()) do
+        if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") then
+            v.Enabled = false
+        end
+        if v:IsA("Decal") or v:IsA("Texture") then
+            v:Destroy()
+        end
+        if v:IsA("MeshPart") and v.Name ~= "HumanoidRootPart" then
+            v.Material = Enum.Material.Plastic
+            v.Reflectance = 0
+        end
+    end
+    -- Terrain plat vert
+    if Workspace:FindFirstChild("Terrain") then
+        Workspace.Terrain:Clear()
+        Workspace.Terrain:FillBlock(CFrame.new(0,0,0), Vector3.new(1024,1,1024), Enum.Material.Grass)
+    end
+    notify("Optimisation effectuée ✅", Color3.fromRGB(0,255,0))
+end
+
+OptimizerButton.MouseButton1Click:Connect(optimizer)
+
+-- ======================================
+-- HUD FPS / DEV BY ZAY / Heure (déplaçable)
+-- ======================================
+local hudGui = Instance.new("ScreenGui")
+hudGui.Name = "HUDGui"
+hudGui.ResetOnSpawn = false
+hudGui.Parent = playerGui
+
+local hudFrame = Instance.new("Frame")
+hudFrame.Size = UDim2.new(0,220,0,50)
+hudFrame.Position = UDim2.new(0.5,-110,0,10)
+hudFrame.BackgroundColor3 = Color3.fromRGB(25,25,25)
+hudFrame.BackgroundTransparency = 0.1
+hudFrame.BorderSizePixel = 3
+hudFrame.BorderColor3 = Color3.fromRGB(255,0,0)
+hudFrame.Active = true
+hudFrame.Draggable = true
+hudFrame.Parent = hudGui
+Instance.new("UICorner", hudFrame).CornerRadius = UDim.new(0,12)
+
+local stroke = Instance.new("UIStroke")
+stroke.Parent = hudFrame
+stroke.Thickness = 3
+stroke.Transparency = 0
+local hueHUD = 0
+RunService.RenderStepped:Connect(function(dt)
+    hueHUD = (hueHUD + dt*0.5) % 1
+    stroke.Color = Color3.fromHSV(hueHUD,1,1)
+end)
+
+local hudText = Instance.new("TextLabel")
+hudText.Size = UDim2.new(1,0,1,0)
+hudText.BackgroundTransparency = 1
+hudText.TextColor3 = Color3.fromRGB(255,255,255)
+hudText.Font = Enum.Font.GothamBold
+hudText.TextSize = 16
+hudText.TextStrokeTransparency = 0.5
+hudText.TextWrapped = true
+hudText.TextXAlignment = Enum.TextXAlignment.Center
+hudText.TextYAlignment = Enum.TextYAlignment.Center
+hudText.Text = "FPS: 0\nDEV BY ZAY\n00:00"
+hudText.Parent = hudFrame
+
+local lastTime = tick()
+RunService.RenderStepped:Connect(function()
+    local now = tick()
+    local delta = now - lastTime
+    lastTime = now
+    local fps = math.floor(1 / delta)
+    local timeString = os.date("%H:%M:%S")
+    hudText.Text = "FPS: "..fps.."\nDEV BY ZAY\n"..timeString
 end)
