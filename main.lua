@@ -23,7 +23,7 @@ local playerGui = player:WaitForChild("PlayerGui")
 -- ======================================
 local Whitelist = {
     9173033891, -- Remplace par ton UserId
-    5182071786  -- Ajouter d'autres UserId si besoin
+    5182071786,  -- Ajouter d'autres UserId si besoin
 }
 
 local function isWhitelisted(userId)
