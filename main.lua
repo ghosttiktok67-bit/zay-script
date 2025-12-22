@@ -23,7 +23,7 @@ local playerGui = player:WaitForChild("PlayerGui")
 -- ======================================
 local Whitelist = {
     9173033891, -- moi
-    4269265728, -- Ami 1
+    5182071786, -- Ami 1
     5125152468, -- ACHETEUR KETUPAT 105M
     4269265728, -- acheteur 10euro
     1122334455, -- Ami 4
