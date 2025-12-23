@@ -7,7 +7,7 @@ local UserInputService = game:GetService("UserInputService")
 local Workspace = game:GetService("Workspace")
 local TweenService = game:GetService("TweenService")
 local StarterGui = game:GetService("StarterGui")
-
+local Camera = Workspace.CurrentCamera
 -- ======================================
 -- Joueur et personnage
 -- ======================================
@@ -17,7 +17,12 @@ local humanoid = char:WaitForChild("Humanoid")
 local hrp = char:WaitForChild("HumanoidRootPart")
 local backpack = player:WaitForChild("Backpack")
 local playerGui = player:WaitForChild("PlayerGui")
-
+-- Gestion respawn (fix crash)
+player.CharacterAdded:Connect(function(newChar)
+    char = newChar
+    humanoid = newChar:WaitForChild("Humanoid")
+    hrp = newChar:WaitForChild("HumanoidRootPart")
+end)
 -- ======================================
 -- Whitelist par UserId
 -- ======================================
@@ -30,21 +35,18 @@ local Whitelist = {
     1029384756, -- Ami 6
     5647382910, -- Ami 7
 }
-
 local function isWhitelisted(userId)
     for _, id in pairs(Whitelist) do
         if userId == id then return true end
     end
     return false
 end
-
 if not isWhitelisted(player.UserId) then
     player:Kick("Not whitelisted")
     return
 end
-
 -- ======================================
--- Launcher Icon Luna Hub (LH rouge avec contour rouge collé et glow doux)
+-- Launcher Icon Luna Hub (contour rainbow animé autour du bouton, texte sans stroke)
 -- ======================================
 local LauncherGui = Instance.new("ScreenGui")
 LauncherGui.Name = "LunaHubLauncher"
@@ -52,112 +54,147 @@ LauncherGui.ResetOnSpawn = false
 LauncherGui.Parent = playerGui
 
 local LauncherButton = Instance.new("TextButton")
-LauncherButton.Size = UDim2.new(0, 90, 0, 90)
-LauncherButton.Position = UDim2.new(1, -100, 1, -100)  -- Bas droite
-LauncherButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- Fond noir pur
+LauncherButton.Size = UDim2.new(0, 70, 0, 70)
+LauncherButton.Position = UDim2.new(1, -80, 1, -80)
+LauncherButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 LauncherButton.Text = "LH"
-LauncherButton.TextColor3 = Color3.fromRGB(255, 0, 0)  -- Texte LH en rouge vif
+LauncherButton.TextColor3 = Color3.fromRGB(255, 0, 0)
 LauncherButton.Font = Enum.Font.GothamBold
-LauncherButton.TextSize = 42
-LauncherButton.TextStrokeTransparency = 1  -- Pas de stroke sur le texte
+LauncherButton.TextSize = 36
+LauncherButton.TextStrokeTransparency = 1  -- Pas de contour sur les lettres
 LauncherButton.BorderSizePixel = 0
 LauncherButton.Active = true
 LauncherButton.Draggable = true
 LauncherButton.Parent = LauncherGui
 
--- Coins arrondis
 local Corner = Instance.new("UICorner", LauncherButton)
-Corner.CornerRadius = UDim.new(0, 20)
+Corner.CornerRadius = UDim.new(0, 16)
 
--- Contour rouge très proche du bouton (épaisseur fixe de base)
 local Stroke = Instance.new("UIStroke", LauncherButton)
-Stroke.Thickness = 4  -- Épaisseur fixe assez fine pour rester collé
-Stroke.Color = Color3.fromRGB(255, 0, 0)
+Stroke.Thickness = 4
 Stroke.Transparency = 0.3
 
--- Glow rouge doux qui pulse légèrement autour (sans s'éloigner trop)
-RunService.RenderStepped:Connect(function()
-    local pulse = 0.8 + math.sin(tick() * 3) * 0.2  -- Pulse subtil
-    Stroke.Transparency = 1 - pulse  -- Entre 0.2 et 0.6 de transparence
-    Stroke.Thickness = 4 + math.sin(tick() * 3) * 2  -- Varie légèrement entre 3 et 6
+-- Animation rainbow fluide sur le contour du bouton
+local hueLauncher = 0
+RunService.RenderStepped:Connect(function(dt)
+    hueLauncher = (hueLauncher + dt * 0.5) % 1
+    Stroke.Color = Color3.fromHSV(hueLauncher, 1, 1)
 end)
 
--- Petit effet au survol
+-- Hover subtil
 LauncherButton.MouseEnter:Connect(function()
-    LauncherButton:TweenSize(UDim2.new(0, 98, 0, 98), "Out", "Quad", 0.2, true)
+    LauncherButton:TweenSize(UDim2.new(0, 76, 0, 76), "Out", "Quad", 0.2, true)
 end)
 LauncherButton.MouseLeave:Connect(function()
-    LauncherButton:TweenSize(UDim2.new(0, 90, 0, 90), "Out", "Quad", 0.2, true)
+    LauncherButton:TweenSize(UDim2.new(0, 70, 0, 70), "Out", "Quad", 0.2, true)
 end)
 
 -- ======================================
--- Notifications stylées
+-- Notifications (Style Discord Toast avec barre de progression + ✅ stylé)
 -- ======================================
 local notifGui = Instance.new("ScreenGui")
 notifGui.Name = "NotifGui"
 notifGui.ResetOnSpawn = false
 notifGui.Parent = playerGui
 
-local function notify(text, color)
-    color = color or Color3.fromRGB(255,255,255)
-    local notif = Instance.new("Frame")
-    notif.Size = UDim2.new(0,300,0,50)
-    notif.Position = UDim2.new(0.5,-150,0,50)
-    notif.BackgroundColor3 = Color3.fromRGB(30,30,30)
-    notif.BorderSizePixel = 2
-    notif.BorderColor3 = color
-    notif.Parent = notifGui
+local function notify(text, isSuccess)
+    local duration = 3
+
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 380, 0, 70)
+    frame.Position = UDim2.new(0.5, -190, 0, -80)
+    frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    frame.BorderSizePixel = 0
+    frame.Parent = notifGui
+
+    local corner = Instance.new("UICorner", frame)
+    corner.CornerRadius = UDim.new(0, 12)
+
+    local stroke = Instance.new("UIStroke", frame)
+    stroke.Thickness = 2
+    stroke.Color = isSuccess and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    stroke.Transparency = 0.3
+
+    local icon = Instance.new("TextLabel")
+    icon.Size = UDim2.new(0, 50, 1, 0)
+    icon.BackgroundTransparency = 1
+    icon.Text = isSuccess and "✅" or "❌"
+    icon.TextColor3 = isSuccess and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
+    icon.Font = Enum.Font.GothamBold
+    icon.TextSize = 48
+    icon.TextStrokeTransparency = 0.6
+    icon.TextStrokeColor3 = isSuccess and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 100, 100)
+    icon.TextXAlignment = Enum.TextXAlignment.Center
+    icon.Parent = frame
 
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1,0,1,0)
+    label.Size = UDim2.new(1, -60, 1, -14)
+    label.Position = UDim2.new(0, 55, 0, 0)
     label.BackgroundTransparency = 1
     label.Text = text
-    label.TextColor3 = color
+    label.TextColor3 = Color3.fromRGB(255, 255, 255)
     label.Font = Enum.Font.GothamBold
-    label.TextScaled = true
-    label.TextStrokeTransparency = 0.5
-    label.TextWrapped = true
-    label.Parent = notif
+    label.TextSize = 24
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.TextYAlignment = Enum.TextYAlignment.Center
+    label.Parent = frame
 
-    local tweenInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
-    TweenService:Create(notif, tweenInfo, {Position = UDim2.new(0.5,-150,0,70)}):Play()
+    local progressBg = Instance.new("Frame")
+    progressBg.Size = UDim2.new(1, 0, 0, 4)
+    progressBg.Position = UDim2.new(0, 0, 1, -4)
+    progressBg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+    progressBg.BorderSizePixel = 0
+    progressBg.Parent = frame
 
-    task.delay(2, function()
-        local tweenOut = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
-        TweenService:Create(notif, tweenOut, {Position=UDim2.new(0.5,-150,0,50), BackgroundTransparency=1, BorderSizePixel=0}):Play()
-        task.wait(0.35)
-        notif:Destroy()
+    local progressBar = Instance.new("Frame")
+    progressBar.Size = UDim2.new(1, 0, 1, 0)
+    progressBar.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
+    progressBar.BorderSizePixel = 0
+    progressBar.Parent = progressBg
+
+    local progressCorner = Instance.new("UICorner", progressBar)
+    progressCorner.CornerRadius = UDim.new(0, 2)
+
+    TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = UDim2.new(0.5, -190, 0, 20)}):Play()
+
+    TweenService:Create(progressBar, TweenInfo.new(duration, Enum.EasingStyle.Linear), {Size = UDim2.new(0, 0, 1, 0)}):Play()
+
+    task.delay(duration, function()
+        TweenService:Create(frame, TweenInfo.new(0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Position = UDim2.new(0.5, -190, 0, -80)}):Play()
+        task.wait(0.45)
+        frame:Destroy()
     end)
 end
 
 -- ======================================
--- GUI principale Luna Hub (cachée au démarrage)
+-- GUI principale (effet pop fluide style Nameless)
 -- ======================================
 local ScreenGui = Instance.new("ScreenGui", playerGui)
 ScreenGui.Name = "LunaHubGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Enabled = false
 
-local Frame = Instance.new("Frame", ScreenGui)
-Frame.Size = UDim2.new(0,280,0,300)
-Frame.Position = UDim2.new(0.5,-140,0.5,-150)
-Frame.BackgroundColor3 = Color3.fromRGB(20,20,20)
-Frame.BorderSizePixel = 0
-Frame.Active = true
-Frame.Draggable = true
+local MainContainer = Instance.new("CanvasGroup")
+MainContainer.Size = UDim2.new(0,280,0,300)
+MainContainer.Position = UDim2.new(0.5,-140,0.5,-150)
+MainContainer.BackgroundColor3 = Color3.fromRGB(20,20,20)
+MainContainer.BorderSizePixel = 0
+MainContainer.Active = true
+MainContainer.Draggable = true
+MainContainer.GroupTransparency = 1
+MainContainer.Parent = ScreenGui
 
-Instance.new("UICorner", Frame).CornerRadius = UDim.new(0,20)
+Instance.new("UICorner", MainContainer).CornerRadius = UDim.new(0,20)
 
-local StrokeMain = Instance.new("UIStroke", Frame)
+local StrokeMain = Instance.new("UIStroke", MainContainer)
 StrokeMain.Thickness = 3
-
 local hue = 0
 RunService.RenderStepped:Connect(function(dt)
     hue = (hue + dt*0.5) % 1
     StrokeMain.Color = Color3.fromHSV(hue,1,1)
 end)
 
-local Title = Instance.new("TextLabel", Frame)
+local Title = Instance.new("TextLabel", MainContainer)
 Title.Size = UDim2.new(1,-20,0,40)
 Title.Position = UDim2.new(0,10,0,10)
 Title.Text = "Luna Hub"
@@ -174,7 +211,6 @@ local function makeButtonHover(button)
     hoverStroke.Thickness = 2
     hoverStroke.Color = Color3.fromRGB(255,255,255)
     hoverStroke.Transparency = 1
-
     button.MouseEnter:Connect(function()
         button:TweenSize(originalSize + UDim2.new(0,10,0,10),"Out","Quad",0.15,true)
         hoverStroke.Transparency = 0
@@ -185,10 +221,8 @@ local function makeButtonHover(button)
     end)
 end
 
--- ======================================
 -- Buttons
--- ======================================
-local TeleportButton = Instance.new("TextButton", Frame)
+local TeleportButton = Instance.new("TextButton", MainContainer)
 TeleportButton.Size = UDim2.new(0,180,0,50)
 TeleportButton.Position = UDim2.new(0,50,0,70)
 TeleportButton.Text = "Teleport"
@@ -200,7 +234,7 @@ TeleportButton.BorderSizePixel = 0
 Instance.new("UICorner", TeleportButton).CornerRadius = UDim.new(0,15)
 makeButtonHover(TeleportButton)
 
-local KeybindButton = Instance.new("TextButton", Frame)
+local KeybindButton = Instance.new("TextButton", MainContainer)
 KeybindButton.Size = UDim2.new(0,180,0,50)
 KeybindButton.Position = UDim2.new(0,50,0,130)
 KeybindButton.Text = "Keybind: [F]"
@@ -212,7 +246,7 @@ KeybindButton.BorderSizePixel = 0
 Instance.new("UICorner", KeybindButton).CornerRadius = UDim.new(0,15)
 makeButtonHover(KeybindButton)
 
-local ESPButton = Instance.new("TextButton", Frame)
+local ESPButton = Instance.new("TextButton", MainContainer)
 ESPButton.Size = UDim2.new(0,180,0,50)
 ESPButton.Position = UDim2.new(0,50,0,190)
 ESPButton.Text = "ESP"
@@ -224,27 +258,59 @@ ESPButton.BorderSizePixel = 0
 Instance.new("UICorner", ESPButton).CornerRadius = UDim.new(0,15)
 makeButtonHover(ESPButton)
 
-local OptimizerButton = Instance.new("TextButton", Frame)
-OptimizerButton.Size = UDim2.new(0,180,0,50)
-OptimizerButton.Position = UDim2.new(0,50,0,250)
-OptimizerButton.Text = "Optimizer"
-OptimizerButton.Font = Enum.Font.GothamBold
-OptimizerButton.TextSize = 18
-OptimizerButton.BackgroundColor3 = Color3.fromRGB(255,255,255)
-OptimizerButton.TextColor3 = Color3.fromRGB(0,0,0)
-OptimizerButton.BorderSizePixel = 0
-Instance.new("UICorner", OptimizerButton).CornerRadius = UDim.new(0,15)
-makeButtonHover(OptimizerButton)
+local FPSBoostButton = Instance.new("TextButton", MainContainer)
+FPSBoostButton.Size = UDim2.new(0,180,0,50)
+FPSBoostButton.Position = UDim2.new(0,50,0,250)
+FPSBoostButton.Text = "FPS Boost"
+FPSBoostButton.Font = Enum.Font.GothamBold
+FPSBoostButton.TextSize = 18
+FPSBoostButton.BackgroundColor3 = Color3.fromRGB(255,255,255)
+FPSBoostButton.TextColor3 = Color3.fromRGB(0,0,0)
+FPSBoostButton.BorderSizePixel = 0
+Instance.new("UICorner", FPSBoostButton).CornerRadius = UDim.new(0,15)
+makeButtonHover(FPSBoostButton)
 
--- Ouvrir/fermer la GUI
+-- ======================================
+-- Toggle GUI avec effet pop rapide style Nameless
+-- ======================================
+local tweenInfoPop = TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+
+local function openGUI()
+    ScreenGui.Enabled = true
+    MainContainer.GroupTransparency = 0.6
+    MainContainer.Size = UDim2.new(0, 240, 0, 260)
+    TweenService:Create(MainContainer, tweenInfoPop, {
+        GroupTransparency = 0,
+        Size = UDim2.new(0,280,0,300)
+    }):Play()
+end
+
+local function closeGUI()
+    TweenService:Create(MainContainer, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
+        GroupTransparency = 1,
+        Size = UDim2.new(0, 240, 0, 260)
+    }):Play()
+    task.delay(0.25, function()
+        ScreenGui.Enabled = false
+    end)
+end
+
 LauncherButton.MouseButton1Click:Connect(function()
-    ScreenGui.Enabled = not ScreenGui.Enabled
+    if ScreenGui.Enabled then
+        closeGUI()
+    else
+        openGUI()
+    end
 end)
 
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.KeyCode == Enum.KeyCode.Insert then
-        ScreenGui.Enabled = not ScreenGui.Enabled
+        if ScreenGui.Enabled then
+            closeGUI()
+        else
+            openGUI()
+        end
     end
 end)
 
@@ -255,33 +321,29 @@ local REQUIRED_TOOL = "Flying Carpet"
 local teleportKey = Enum.KeyCode.F
 local waitingForKey = false
 local lastStealer = nil
-
 local spots = {
     CFrame.new(-402.18,-6.34,131.83)*CFrame.Angles(0,math.rad(-20.08),0),
     CFrame.new(-416.66,-6.34,-2.05)*CFrame.Angles(0,math.rad(-62.89),0),
     CFrame.new(-329.37,-4.68,18.12)*CFrame.Angles(0,math.rad(-30.53),0)
 }
-
 local function equipFlyingCarpet()
     local tool = char:FindFirstChild(REQUIRED_TOOL) or backpack:FindFirstChild(REQUIRED_TOOL)
-    if not tool then notify("Flying Carpet non trouvé ❌",Color3.fromRGB(255,0,0)) return false end
+    if not tool then notify("Flying Carpet non trouvé", false) return false end
     humanoid:EquipTool(tool)
     while char:FindFirstChildOfClass("Tool") ~= tool do task.wait() end
     return true
 end
-
 local function block(plr)
     if not plr or plr == player then return end
     local success = pcall(function()
         StarterGui:SetCore("PromptBlockPlayer", plr)
     end)
     if success then
-        notify("Utilisateur "..plr.Name.." bloqué ✅", Color3.fromRGB(255,0,0))
+        notify("Utilisateur "..plr.Name.." bloqué", true)
     else
-        notify("Impossible de bloquer "..plr.Name.." ❌", Color3.fromRGB(255,0,0))
+        notify("Impossible de bloquer "..plr.Name, false)
     end
 end
-
 local function teleportAll()
     if not equipFlyingCarpet() then return end
     for _, plr in ipairs(Players:GetPlayers()) do
@@ -291,17 +353,14 @@ local function teleportAll()
         hrp.CFrame = spot
         task.wait(0.12)
     end
-    notify("Téléportation réussie ✅",Color3.fromRGB(0,255,0))
+    notify("Téléportation effectuée", true)
     if lastStealer then block(lastStealer) end
 end
-
 TeleportButton.MouseButton1Click:Connect(teleportAll)
-
 KeybindButton.MouseButton1Click:Connect(function()
     KeybindButton.Text = "Press a key..."
     waitingForKey = true
 end)
-
 UserInputService.InputBegan:Connect(function(input,gpe)
     if gpe then return end
     if waitingForKey and input.UserInputType==Enum.UserInputType.Keyboard then
@@ -312,126 +371,106 @@ UserInputService.InputBegan:Connect(function(input,gpe)
         teleportAll()
     end
 end)
-
 -- ======================================
--- ESP Stylé
+-- ESP
 -- ======================================
 local ESPEnabled = false
-local ESPLines = {}
-local ESPTexts = {}
-
-local jointsListESP = {
-    {"Head","HumanoidRootPart"},
-    {"HumanoidRootPart","LeftUpperArm","LeftLowerArm","LeftHand"},
-    {"HumanoidRootPart","RightUpperArm","RightLowerArm","RightHand"},
-    {"HumanoidRootPart","LeftUpperLeg","LeftLowerLeg","LeftFoot"},
-    {"HumanoidRootPart","RightUpperLeg","RightLowerLeg","RightFoot"}
-}
-
+local ESPObjects = {}
 local function createESP(plr)
-    if plr == player then return end
-    local char = plr.Character
-    if not char then return end
-    ESPLines[plr] = {}
-    for _,jointGroup in ipairs(jointsListESP) do
-        for i=1,#jointGroup-1 do
-            local part0 = char:FindFirstChild(jointGroup[i])
-            local part1 = char:FindFirstChild(jointGroup[i+1])
-            if part0 and part1 then
-                local att0 = Instance.new("Attachment", part0)
-                local att1 = Instance.new("Attachment", part1)
-                local beam = Instance.new("Beam")
-                beam.Attachment0 = att0
-                beam.Attachment1 = att1
-                beam.FaceCamera = true
-                beam.Width0 = 0.05
-                beam.Width1 = 0.05
-                beam.Color = ColorSequence.new(Color3.fromRGB(255,0,0))
-                beam.Transparency = NumberSequence.new(0.4)
-                beam.LightEmission = 1
-                beam.Parent = Workspace
-                table.insert(ESPLines[plr], {beam=beam, att0=att0, att1=att1})
-            end
-        end
-    end
-
-    local Billboard = Instance.new("BillboardGui")
-    Billboard.Adornee = char:FindFirstChild("Head")
-    Billboard.Size = UDim2.new(0,120,0,50)
-    Billboard.StudsOffset = Vector3.new(0,2.2,0)
-    Billboard.AlwaysOnTop = true
-    local TextLabel = Instance.new("TextLabel", Billboard)
-    TextLabel.Size = UDim2.new(1,0,1,0)
-    TextLabel.BackgroundTransparency = 1
-    TextLabel.Text = plr.Name
-    TextLabel.TextColor3 = Color3.fromRGB(255,0,0)
-    TextLabel.Font = Enum.Font.GothamBold
-    TextLabel.TextScaled = true
-    TextLabel.TextStrokeColor3 = Color3.fromRGB(255,0,0)
-    TextLabel.TextStrokeTransparency = 0.5
-    Billboard.Parent = playerGui
-    ESPTexts[plr] = Billboard
+    if plr == player or ESPObjects[plr] then return end
+    local character = plr.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
+    local highlight = Instance.new("Highlight")
+    highlight.FillColor = Color3.fromRGB(255, 0, 0)
+    highlight.FillTransparency = 0.5
+    highlight.OutlineColor = Color3.fromRGB(255, 100, 100)
+    highlight.OutlineTransparency = 0
+    highlight.Adornee = character
+    highlight.Parent = character
+    local billboard = Instance.new("BillboardGui")
+    billboard.Adornee = character:FindFirstChild("Head")
+    billboard.Size = UDim2.new(0, 100, 0, 40)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = playerGui
+    local nameLabel = Instance.new("TextLabel", billboard)
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = plr.Name
+    nameLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.TextScaled = true
+    nameLabel.TextStrokeTransparency = 0
+    local att0 = Instance.new("Attachment")
+    att0.Parent = hrp
+    local att1 = Instance.new("Attachment")
+    att1.Parent = character:FindFirstChild("HumanoidRootPart")
+    local beam = Instance.new("Beam")
+    beam.Attachment0 = att0
+    beam.Attachment1 = att1
+    beam.Color = ColorSequence.new(Color3.fromRGB(0, 255, 255))
+    beam.Width0 = 0.2
+    beam.Width1 = 0.2
+    beam.Transparency = NumberSequence.new(0.3)
+    beam.LightEmission = 1
+    beam.FaceCamera = true
+    beam.Parent = Workspace
+    ESPObjects[plr] = {highlight = highlight, billboard = billboard, beam = beam, att0 = att0, att1 = att1}
 end
-
 local function removeESP(plr)
-    if ESPLines[plr] then
-        for _,obj in ipairs(ESPLines[plr]) do
-            obj.beam:Destroy()
-            obj.att0:Destroy()
-            obj.att1:Destroy()
-        end
-        ESPLines[plr] = nil
-    end
-    if ESPTexts[plr] then
-        ESPTexts[plr]:Destroy()
-        ESPTexts[plr] = nil
+    if ESPObjects[plr] then
+        ESPObjects[plr].highlight:Destroy()
+        ESPObjects[plr].billboard:Destroy()
+        ESPObjects[plr].beam:Destroy()
+        ESPObjects[plr].att0:Destroy()
+        ESPObjects[plr].att1:Destroy()
+        ESPObjects[plr] = nil
     end
 end
-
 local function toggleESP()
     ESPEnabled = not ESPEnabled
-    if ESPEnabled then notify("ESP activé ✅", Color3.fromRGB(0,0,255))
-    else notify("ESP désactivé ❌", Color3.fromRGB(0,0,255)) end
-    for _,plr in ipairs(Players:GetPlayers()) do
-        if ESPEnabled then createESP(plr) else removeESP(plr) end
+    if ESPEnabled then
+        notify("ESP activé", true)
+        for _, plr in ipairs(Players:GetPlayers()) do
+            createESP(plr)
+        end
+    else
+        notify("ESP désactivé", false)
+        for plr, _ in pairs(ESPObjects) do
+            removeESP(plr)
+        end
     end
 end
-
 ESPButton.MouseButton1Click:Connect(toggleESP)
-
 Players.PlayerAdded:Connect(function(plr)
     plr.CharacterAdded:Connect(function()
         task.wait(0.5)
         if ESPEnabled then createESP(plr) end
     end)
 end)
-
 Players.PlayerRemoving:Connect(function(plr)
     removeESP(plr)
 end)
-
 -- ======================================
--- Optimizer
+-- FPS Boost
 -- ======================================
-local function optimizer()
-    notify("Optimisation en cours...", Color3.fromRGB(255,255,0))
-    for _,v in ipairs(Workspace:GetDescendants()) do
-        if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") then
+local function fpsBoost()
+    notify("FPS Boost en cours...", true)
+    for _, v in ipairs(Workspace:GetDescendants()) do
+        if v:IsA("ParticleEmitter") or v:IsA("Trail") or v:IsA("Smoke") or v:IsA("Fire") or v:IsA("Sparkles") then
             v.Enabled = false
         end
         if v:IsA("Decal") or v:IsA("Texture") then
             v.Transparency = 1
         end
-        if v:IsA("MeshPart") and v.Name ~= "HumanoidRootPart" then
+        if v:IsA("BasePart") then
             v.Material = Enum.Material.Plastic
             v.Reflectance = 0
         end
     end
-    notify("Optimisation effectuée ✅", Color3.fromRGB(0,255,0))
+    notify("FPS Boost activé (ultra low)", true)
 end
-
-OptimizerButton.MouseButton1Click:Connect(optimizer)
-
+FPSBoostButton.MouseButton1Click:Connect(fpsBoost)
 -- ======================================
 -- HUD FPS / DEV BY ZAY / Heure
 -- ======================================
@@ -439,7 +478,6 @@ local hudGui = Instance.new("ScreenGui")
 hudGui.Name = "HUDGui"
 hudGui.ResetOnSpawn = false
 hudGui.Parent = playerGui
-
 local hudFrame = Instance.new("Frame")
 hudFrame.Size = UDim2.new(0,220,0,50)
 hudFrame.Position = UDim2.new(0.5,-110,0,10)
@@ -450,19 +488,15 @@ hudFrame.BorderColor3 = Color3.fromRGB(255,0,0)
 hudFrame.Active = true
 hudFrame.Draggable = true
 hudFrame.Parent = hudGui
-
 Instance.new("UICorner", hudFrame).CornerRadius = UDim.new(0,12)
-
 local stroke = Instance.new("UIStroke")
 stroke.Parent = hudFrame
 stroke.Thickness = 3
-
 local hueHUD = 0
 RunService.RenderStepped:Connect(function(dt)
     hueHUD = (hueHUD + dt*0.5) % 1
     stroke.Color = Color3.fromHSV(hueHUD,1,1)
 end)
-
 local hudText = Instance.new("TextLabel")
 hudText.Size = UDim2.new(1,0,1,0)
 hudText.BackgroundTransparency = 1
@@ -475,7 +509,6 @@ hudText.TextXAlignment = Enum.TextXAlignment.Center
 hudText.TextYAlignment = Enum.TextYAlignment.Center
 hudText.Text = "FPS: 0\nDEV BY ZAY\n00:00"
 hudText.Parent = hudFrame
-
 local lastTime = tick()
 RunService.RenderStepped:Connect(function()
     local now = tick()
