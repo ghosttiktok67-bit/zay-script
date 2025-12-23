@@ -32,7 +32,7 @@ local Whitelist = {
     5125152468, -- ACHETEUR KETUPAT 105M
     4269265728, -- acheteur 10euro
     1617845814, -- free le bon 13
-    1029384756, -- Ami 6
+    3633726615, -- ACHETEUR KEBECOIS 
     5647382910, -- Ami 7
 }
 local function isWhitelisted(userId)
