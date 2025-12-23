@@ -26,7 +26,7 @@ local Whitelist = {
     5182071786, -- Ami 1
     5125152468, -- ACHETEUR KETUPAT 105M
     4269265728, -- acheteur 10euro
-    5566778899, -- Ami 5
+    1617845814, -- free le bon 13
     1029384756, -- Ami 6
     5647382910, -- Ami 7
 }
