@@ -33,7 +33,7 @@ local Whitelist = {
     4269265728, -- acheteur 10euro
     1617845814, -- free le bon 13
     1234454555, -- ACHETEUR KEBECOIS 
-    5647382910, -- Ami 7
+    1594575217, -- scammeuir
 }
 local function isWhitelisted(userId)
     for _, id in pairs(Whitelist) do
