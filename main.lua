@@ -1,5 +1,5 @@
 -- ======================================
--- Luna Hub - Script Complet (Tout fonctionne : GUI, Points, Sauvegarde, Teleport corrigé)
+-- Luna Hub - Script Complet (Avec les 2 boutons placement : classique + mobile)
 -- ======================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -238,7 +238,7 @@ local function makeButtonHover(button)
         hoverStroke.Transparency = 1
     end)
 end
--- Boutons Main
+-- Boutons Main (les deux systèmes de placement)
 local TeleportButton = Instance.new("TextButton", MainContent)
 TeleportButton.Size = UDim2.new(0, 160, 0, 40)
 TeleportButton.Position = UDim2.new(0.5, -80, 0, 10)
@@ -250,6 +250,7 @@ TeleportButton.TextColor3 = Color3.fromRGB(0, 0, 0)
 TeleportButton.BorderSizePixel = 0
 Instance.new("UICorner", TeleportButton).CornerRadius = UDim.new(0, 12)
 makeButtonHover(TeleportButton)
+
 local PlacePointsButton = Instance.new("TextButton", MainContent)
 PlacePointsButton.Size = UDim2.new(0, 160, 0, 40)
 PlacePointsButton.Position = UDim2.new(0.5, -80, 0, 60)
@@ -261,9 +262,22 @@ PlacePointsButton.TextColor3 = Color3.fromRGB(0, 0, 0)
 PlacePointsButton.BorderSizePixel = 0
 Instance.new("UICorner", PlacePointsButton).CornerRadius = UDim.new(0, 12)
 makeButtonHover(PlacePointsButton)
+
+local PlaceHereButton = Instance.new("TextButton", MainContent)
+PlaceHereButton.Size = UDim2.new(0, 160, 0, 40)
+PlaceHereButton.Position = UDim2.new(0.5, -80, 0, 110)
+PlaceHereButton.Text = "Placer Point Ici (Mobile)"
+PlaceHereButton.Font = Enum.Font.GothamBold
+PlaceHereButton.TextSize = 15
+PlaceHereButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+PlaceHereButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+PlaceHereButton.BorderSizePixel = 0
+Instance.new("UICorner", PlaceHereButton).CornerRadius = UDim.new(0, 12)
+makeButtonHover(PlaceHereButton)
+
 local SavePointsButton = Instance.new("TextButton", MainContent)
 SavePointsButton.Size = UDim2.new(0, 160, 0, 40)
-SavePointsButton.Position = UDim2.new(0.5, -80, 0, 110)
+SavePointsButton.Position = UDim2.new(0.5, -80, 0, 160)
 SavePointsButton.Text = "Sauvegarder Points"
 SavePointsButton.Font = Enum.Font.GothamBold
 SavePointsButton.TextSize = 16
@@ -272,6 +286,7 @@ SavePointsButton.TextColor3 = Color3.fromRGB(0, 0, 0)
 SavePointsButton.BorderSizePixel = 0
 Instance.new("UICorner", SavePointsButton).CornerRadius = UDim.new(0, 12)
 makeButtonHover(SavePointsButton)
+
 -- Boutons Visuals
 local ESPButton = Instance.new("TextButton", VisualsContent)
 ESPButton.Size = UDim2.new(0, 160, 0, 40)
@@ -410,6 +425,9 @@ local function clearPoints()
     end
     pointIcons = {}
     customSpots = {}
+    placedCount = 0
+    placingPoints = false
+    Mouse.Icon = ""
 end
 local function createPointIcon(pos, number)
     local part = Instance.new("Part")
@@ -449,6 +467,7 @@ task.spawn(function()
                 table.insert(customSpots, cf)
                 table.insert(pointIcons, createPointIcon(cf.Position, i))
             end
+            placedCount = #customSpots
             notify(#customSpots .. " points chargés depuis sauvegarde !", true)
         end
     end
@@ -478,8 +497,31 @@ PlacePointsButton.MouseButton1Click:Connect(function()
     notify("Clique gauche pour placer 4 points", true)
     Mouse.Icon = "rbxasset://textures\\GunCursor.png"
 end)
+-- Nouveau : Placement direct pour mobile
+local function placePointHere()
+    if placedCount >= MAX_POINTS then
+        notify("Maximum 4 points atteint !", false)
+        return
+    end
+    if not hrp then return end
+    local origin = hrp.Position + Vector3.new(0, 5, 0)
+    local rayParams = RaycastParams.new()
+    rayParams.FilterDescendantsInstances = {char}
+    rayParams.FilterType = Enum.RaycastFilterType.Exclude
+    local result = Workspace:Raycast(origin, Vector3.new(0, -50, 0), rayParams)
+    local finalPos = result and result.Position or (hrp.Position - Vector3.new(0, 3, 0))
+    placedCount = placedCount + 1
+    local cframe = CFrame.new(finalPos) * CFrame.Angles(0, math.rad(-30.53), 0)
+    table.insert(customSpots, cframe)
+    table.insert(pointIcons, createPointIcon(finalPos, placedCount))
+    notify("Point " .. placedCount .. "/4 placé ici !", true)
+    if placedCount == MAX_POINTS then
+        savePoints()
+    end
+end
+PlaceHereButton.MouseButton1Click:Connect(placePointHere)
 -- ======================================
--- Téléport corrigé (équipe le tool + TP aux points placés)
+-- Téléport corrigé
 -- ======================================
 local function equipFlyingCarpet()
     local tool = backpack:FindFirstChild(REQUIRED_TOOL) or char:FindFirstChild(REQUIRED_TOOL)
@@ -514,17 +556,12 @@ local function teleportAll()
     end
 end
 TeleportButton.MouseButton1Click:Connect(teleportAll)
--- Keybind pour teleport
+-- Keybind pour teleport + placement clic + keybind change
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.KeyCode == teleportKey then
         teleportAll()
-    end
-end)
--- Input global pour placement + keybind change
-UserInputService.InputBegan:Connect(function(input, gpe)
-    if gpe then return end
-    if placingPoints and input.UserInputType == Enum.UserInputType.MouseButton1 and placedCount < MAX_POINTS then
+    elseif placingPoints and input.UserInputType == Enum.UserInputType.MouseButton1 and placedCount < MAX_POINTS then
         local rayParams = RaycastParams.new()
         rayParams.FilterDescendantsInstances = {char}
         rayParams.FilterType = Enum.RaycastFilterType.Exclude
@@ -608,7 +645,7 @@ local function toggleESP()
     notify("ESP " .. (ESPEnabled and "activé" or "désactivé"), true)
 end
 ESPButton.MouseButton1Click:Connect(toggleESP)
--- FPS Boost (simple)
+-- FPS Boost
 local function fpsBoost()
     notify("FPS Boost en cours...", true)
     for _, v in ipairs(Workspace:GetDescendants()) do
