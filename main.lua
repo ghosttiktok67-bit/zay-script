@@ -1,5 +1,5 @@
 -- ======================================
--- Luna Hub - Script Complet (Avec les 2 boutons placement : classique + mobile)
+-- Luna Hub - Script Complet (Avec les 2 boutons placement : classique + mobile + ESP complet)
 -- ======================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -250,7 +250,6 @@ TeleportButton.TextColor3 = Color3.fromRGB(0, 0, 0)
 TeleportButton.BorderSizePixel = 0
 Instance.new("UICorner", TeleportButton).CornerRadius = UDim.new(0, 12)
 makeButtonHover(TeleportButton)
-
 local PlacePointsButton = Instance.new("TextButton", MainContent)
 PlacePointsButton.Size = UDim2.new(0, 160, 0, 40)
 PlacePointsButton.Position = UDim2.new(0.5, -80, 0, 60)
@@ -262,7 +261,6 @@ PlacePointsButton.TextColor3 = Color3.fromRGB(0, 0, 0)
 PlacePointsButton.BorderSizePixel = 0
 Instance.new("UICorner", PlacePointsButton).CornerRadius = UDim.new(0, 12)
 makeButtonHover(PlacePointsButton)
-
 local PlaceHereButton = Instance.new("TextButton", MainContent)
 PlaceHereButton.Size = UDim2.new(0, 160, 0, 40)
 PlaceHereButton.Position = UDim2.new(0.5, -80, 0, 110)
@@ -274,7 +272,6 @@ PlaceHereButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 PlaceHereButton.BorderSizePixel = 0
 Instance.new("UICorner", PlaceHereButton).CornerRadius = UDim.new(0, 12)
 makeButtonHover(PlaceHereButton)
-
 local SavePointsButton = Instance.new("TextButton", MainContent)
 SavePointsButton.Size = UDim2.new(0, 160, 0, 40)
 SavePointsButton.Position = UDim2.new(0.5, -80, 0, 160)
@@ -286,7 +283,6 @@ SavePointsButton.TextColor3 = Color3.fromRGB(0, 0, 0)
 SavePointsButton.BorderSizePixel = 0
 Instance.new("UICorner", SavePointsButton).CornerRadius = UDim.new(0, 12)
 makeButtonHover(SavePointsButton)
-
 -- Boutons Visuals
 local ESPButton = Instance.new("TextButton", VisualsContent)
 ESPButton.Size = UDim2.new(0, 160, 0, 40)
@@ -638,13 +634,112 @@ UserInputService.InputBegan:Connect(function(input, gpe)
         end
     end
 end)
--- ESP (simple toggle)
+-- ======================================
+-- ESP Complet (Highlight + Name + Beam)
+-- ======================================
 local ESPEnabled = false
+local ESPObjects = {}
+local myAttachment = Instance.new("Attachment")
+myAttachment.Parent = hrp
+
+local function createESP(plr)
+    if plr == player or ESPObjects[plr] then return end
+    local character = plr.Character
+    if not character or not character:FindFirstChild("HumanoidRootPart") or not character:FindFirstChild("Head") then return end
+
+    local highlight = Instance.new("Highlight")
+    highlight.FillColor = Color3.fromRGB(255, 0, 0)
+    highlight.FillTransparency = 0.5
+    highlight.OutlineColor = Color3.fromRGB(255, 100, 100)
+    highlight.OutlineTransparency = 0
+    highlight.Adornee = character
+    highlight.Parent = character
+
+    local billboard = Instance.new("BillboardGui")
+    billboard.Adornee = character:FindFirstChild("Head")
+    billboard.Size = UDim2.new(0, 80, 0, 32)
+    billboard.StudsOffset = Vector3.new(0, 3, 0)
+    billboard.AlwaysOnTop = true
+    billboard.Parent = playerGui
+
+    local nameLabel = Instance.new("TextLabel", billboard)
+    nameLabel.Size = UDim2.new(1, 0, 1, 0)
+    nameLabel.BackgroundTransparency = 1
+    nameLabel.Text = plr.Name
+    nameLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
+    nameLabel.Font = Enum.Font.GothamBold
+    nameLabel.TextScaled = true
+    nameLabel.TextStrokeTransparency = 0
+
+    local att1 = Instance.new("Attachment")
+    att1.Parent = character:FindFirstChild("HumanoidRootPart")
+
+    local beam = Instance.new("Beam")
+    beam.Attachment0 = myAttachment
+    beam.Attachment1 = att1
+    beam.Color = ColorSequence.new(Color3.fromRGB(0, 255, 255))
+    beam.Width0 = 0.2
+    beam.Width1 = 0.2
+    beam.Transparency = NumberSequence.new(0.3)
+    beam.LightEmission = 1
+    beam.FaceCamera = true
+    beam.Parent = Workspace
+
+    ESPObjects[plr] = {
+        highlight = highlight,
+        billboard = billboard,
+        beam = beam,
+        att1 = att1
+    }
+end
+
+local function removeESP(plr)
+    if ESPObjects[plr] then
+        ESPObjects[plr].highlight:Destroy()
+        ESPObjects[plr].billboard:Destroy()
+        ESPObjects[plr].beam:Destroy()
+        ESPObjects[plr].att1:Destroy()
+        ESPObjects[plr] = nil
+    end
+end
+
 local function toggleESP()
     ESPEnabled = not ESPEnabled
-    notify("ESP " .. (ESPEnabled and "activé" or "désactivé"), true)
+    if ESPEnabled then
+        notify("ESP activé", true)
+        for _, plr in ipairs(Players:GetPlayers()) do
+            createESP(plr)
+        end
+    else
+        notify("ESP désactivé", false)
+        for plr, _ in pairs(ESPObjects) do
+            removeESP(plr)
+        end
+    end
 end
+
 ESPButton.MouseButton1Click:Connect(toggleESP)
+
+Players.PlayerAdded:Connect(function(plr)
+    plr.CharacterAdded:Connect(function()
+        task.wait(0.5)
+        if ESPEnabled then createESP(plr) end
+    end)
+end)
+
+Players.PlayerRemoving:Connect(function(plr)
+    removeESP(plr)
+end)
+
+-- Respawn du joueur : recréer l'attachment central
+player.CharacterAdded:Connect(function(newChar)
+    task.wait(1)
+    hrp = newChar:WaitForChild("HumanoidRootPart")
+    if myAttachment and myAttachment.Parent then myAttachment:Destroy() end
+    myAttachment = Instance.new("Attachment")
+    myAttachment.Parent = hrp
+end)
+
 -- FPS Boost
 local function fpsBoost()
     notify("FPS Boost en cours...", true)
