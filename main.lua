@@ -1,5 +1,5 @@
 -- ======================================
--- Luna Hub - Script Complet (Avec les 2 boutons placement : classique + mobile + ESP complet)
+-- Luna Hub - Version Finale (VIP scrollable + barre visible + bouton Block Instant + Fix onglets horizontaux scrollables)
 -- ======================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -66,8 +66,7 @@ LauncherButton.BorderSizePixel = 0
 LauncherButton.Active = true
 LauncherButton.Draggable = true
 LauncherButton.Parent = LauncherGui
-local Corner = Instance.new("UICorner", LauncherButton)
-Corner.CornerRadius = UDim.new(0, 12)
+Instance.new("UICorner", LauncherButton).CornerRadius = UDim.new(0, 12)
 local Stroke = Instance.new("UIStroke", LauncherButton)
 Stroke.Thickness = 3
 Stroke.Transparency = 0.3
@@ -97,8 +96,7 @@ local function notify(text, isSuccess)
     frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
     frame.BorderSizePixel = 0
     frame.Parent = notifGui
-    local corner = Instance.new("UICorner", frame)
-    corner.CornerRadius = UDim.new(0, 10)
+    Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
     local stroke = Instance.new("UIStroke", frame)
     stroke.Thickness = 2
     stroke.Color = isSuccess and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 0, 0)
@@ -175,17 +173,28 @@ Title.TextSize = 20
 Title.BackgroundTransparency = 1
 Title.TextStrokeTransparency = 0.2
 Title.TextXAlignment = Enum.TextXAlignment.Center
--- Barre d'onglets
-local TabBar = Instance.new("Frame")
-TabBar.Size = UDim2.new(1, -16, 0, 32)
-TabBar.Position = UDim2.new(0, 8, 0, 42)
-TabBar.BackgroundTransparency = 1
-TabBar.Parent = MainContainer
+-- === MODIFICATION : Barre d'onglets scrollable horizontalement ===
+local TabScroll = Instance.new("ScrollingFrame")
+TabScroll.Size = UDim2.new(1, -16, 0, 32)
+TabScroll.Position = UDim2.new(0, 8, 0, 42)
+TabScroll.BackgroundTransparency = 1
+TabScroll.BorderSizePixel = 0
+TabScroll.ScrollBarThickness = 8
+TabScroll.ScrollingDirection = Enum.ScrollingDirection.X
+TabScroll.AutomaticCanvasSize = Enum.AutomaticSize.X
+TabScroll.CanvasSize = UDim2.new(0, 0, 0, 0)
+TabScroll.Parent = MainContainer
 local TabListLayout = Instance.new("UIListLayout")
 TabListLayout.FillDirection = Enum.FillDirection.Horizontal
-TabListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+TabListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 TabListLayout.Padding = UDim.new(0, 8)
-TabListLayout.Parent = TabBar
+TabListLayout.Parent = TabScroll
+-- Effet rainbow sur la barre de scroll des onglets
+local hueTabScroll = 0
+RunService.RenderStepped:Connect(function(dt)
+    hueTabScroll = (hueTabScroll + dt * 0.5) % 1
+    TabScroll.ScrollBarImageColor3 = Color3.fromHSV(hueTabScroll, 1, 1)
+end)
 local function createTab(name)
     local tabButton = Instance.new("TextButton")
     tabButton.Size = UDim2.new(0, 70, 1, 0)
@@ -195,13 +204,15 @@ local function createTab(name)
     tabButton.Font = Enum.Font.GothamBold
     tabButton.TextSize = 16
     tabButton.BorderSizePixel = 0
-    tabButton.Parent = TabBar
+    tabButton.Parent = TabScroll
     Instance.new("UICorner", tabButton).CornerRadius = UDim.new(0, 8)
     return tabButton
 end
 local MainTab = createTab("Main")
 local VisualsTab = createTab("Visuals")
 local ConfigTab = createTab("Config")
+local VIPTtab = createTab("VIP")
+-- ======================================
 -- Contenu des onglets
 local ContentFrame = Instance.new("Frame")
 ContentFrame.Size = UDim2.new(1, -24, 1, -84)
@@ -223,6 +234,26 @@ ConfigContent.Size = UDim2.new(1, 0, 1, 0)
 ConfigContent.BackgroundTransparency = 1
 ConfigContent.Parent = ContentFrame
 ConfigContent.Visible = false
+-- Onglet VIP avec scroll + barre visible
+local VIPScrollingFrame = Instance.new("ScrollingFrame")
+VIPScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
+VIPScrollingFrame.BackgroundTransparency = 1
+VIPScrollingFrame.BorderSizePixel = 0
+VIPScrollingFrame.ScrollBarThickness = 10
+VIPScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
+VIPScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+VIPScrollingFrame.Visible = false
+VIPScrollingFrame.Parent = ContentFrame
+-- Effet rainbow sur la barre de scroll VIP
+local hueVIPScroll = 0
+RunService.RenderStepped:Connect(function(dt)
+    hueVIPScroll = (hueVIPScroll + dt * 0.5) % 1
+    VIPScrollingFrame.ScrollBarImageColor3 = Color3.fromHSV(hueVIPScroll, 1, 1)
+end)
+local VIPLayout = Instance.new("UIListLayout")
+VIPLayout.Padding = UDim.new(0, 20)
+VIPLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+VIPLayout.Parent = VIPScrollingFrame
 local function makeButtonHover(button)
     local originalSize = button.Size
     local hoverStroke = Instance.new("UIStroke", button)
@@ -238,7 +269,7 @@ local function makeButtonHover(button)
         hoverStroke.Transparency = 1
     end)
 end
--- Boutons Main (les deux systèmes de placement)
+-- Boutons Main
 local TeleportButton = Instance.new("TextButton", MainContent)
 TeleportButton.Size = UDim2.new(0, 160, 0, 40)
 TeleportButton.Position = UDim2.new(0.5, -80, 0, 10)
@@ -306,9 +337,7 @@ FPSBoostButton.TextColor3 = Color3.fromRGB(0, 0, 0)
 FPSBoostButton.BorderSizePixel = 0
 Instance.new("UICorner", FPSBoostButton).CornerRadius = UDim.new(0, 12)
 makeButtonHover(FPSBoostButton)
--- ======================================
--- Onglet Config avec Sauvegarde par Nom
--- ======================================
+-- Onglet Config
 local teleportKey = Enum.KeyCode.F
 local waitingForKey = false
 local KeybindButton = Instance.new("TextButton", ConfigContent)
@@ -405,6 +434,133 @@ KeybindButton.MouseButton1Click:Connect(function()
     waitingForKey = true
 end)
 -- ======================================
+-- Onglet VIP - Boutons
+-- ======================================
+local VIPTitle = Instance.new("TextLabel")
+VIPTitle.Size = UDim2.new(0, 200, 0, 50)
+VIPTitle.Text = "Script VIP"
+VIPTitle.TextColor3 = Color3.fromRGB(255, 215, 0)
+VIPTitle.Font = Enum.Font.GothamBlack
+VIPTitle.TextSize = 28
+VIPTitle.BackgroundTransparency = 1
+VIPTitle.TextXAlignment = Enum.TextXAlignment.Center
+VIPTitle.Parent = VIPScrollingFrame
+local NamelessButton = Instance.new("TextButton")
+NamelessButton.Size = UDim2.new(0, 160, 0, 40)
+NamelessButton.Text = "Nameless"
+NamelessButton.Font = Enum.Font.GothamBold
+NamelessButton.TextSize = 18
+NamelessButton.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
+NamelessButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+NamelessButton.BorderSizePixel = 0
+Instance.new("UICorner", NamelessButton).CornerRadius = UDim.new(0, 12)
+makeButtonHover(NamelessButton)
+NamelessButton.Parent = VIPScrollingFrame
+NamelessButton.MouseButton1Click:Connect(function()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/ily123950/Vulkan/refs/heads/main/Tr"))()
+    end)
+    if success then
+        notify("Nameless Hub chargé avec succès !", true)
+    else
+        notify("Erreur lors du chargement Nameless", false)
+    end
+end)
+local AllowDisallowButton = Instance.new("TextButton")
+AllowDisallowButton.Size = UDim2.new(0, 160, 0, 40)
+AllowDisallowButton.Text = "Allow / Disallow"
+AllowDisallowButton.Font = Enum.Font.GothamBold
+AllowDisallowButton.TextSize = 16
+AllowDisallowButton.BackgroundColor3 = Color3.fromRGB(170, 0, 255)
+AllowDisallowButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AllowDisallowButton.BorderSizePixel = 0
+Instance.new("UICorner", AllowDisallowButton).CornerRadius = UDim.new(0, 12)
+makeButtonHover(AllowDisallowButton)
+AllowDisallowButton.Parent = VIPScrollingFrame
+AllowDisallowButton.MouseButton1Click:Connect(function()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://pastebin.com/raw/aipXbhpf",true))()
+    end)
+    if success then
+        notify("Allow/Disallow script chargé !", true)
+    else
+        notify("Erreur lors du chargement Allow/Disallow", false)
+    end
+end)
+-- Nouveau bouton Block Instant
+local BlockInstantButton = Instance.new("TextButton")
+BlockInstantButton.Size = UDim2.new(0, 160, 0, 40)
+BlockInstantButton.Text = "Block Instant"
+BlockInstantButton.Font = Enum.Font.GothamBold
+BlockInstantButton.TextSize = 18
+BlockInstantButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+BlockInstantButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+BlockInstantButton.BorderSizePixel = 0
+Instance.new("UICorner", BlockInstantButton).CornerRadius = UDim.new(0, 12)
+makeButtonHover(BlockInstantButton)
+BlockInstantButton.Parent = VIPScrollingFrame
+BlockInstantButton.MouseButton1Click:Connect(function()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/sabscripts063-cloud/Kdml-Not-Me/main/BlockPlayer"))()
+    end)
+    if success then
+        notify("Block Instant chargé avec succès !", true)
+    else
+        notify("Erreur lors du chargement Block Instant", false)
+    end
+end)
+
+-- Nouveau bouton Auto Kick
+local AutoKickButton = Instance.new("TextButton")
+AutoKickButton.Size = UDim2.new(0, 160, 0, 40)
+AutoKickButton.Text = "Auto Kick"
+AutoKickButton.Font = Enum.Font.GothamBold
+AutoKickButton.TextSize = 18
+AutoKickButton.BackgroundColor3 = Color3.fromRGB(255, 100, 0)
+AutoKickButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AutoKickButton.BorderSizePixel = 0
+Instance.new("UICorner", AutoKickButton).CornerRadius = UDim.new(0, 12)
+makeButtonHover(AutoKickButton)
+AutoKickButton.Parent = VIPScrollingFrame
+
+AutoKickButton.MouseButton1Click:Connect(function()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://pastefy.app/avJfNdOe/raw"))()
+    end)
+    if success then
+        notify("Auto Kick chargé avec succès !", true)
+    else
+        notify("Erreur lors du chargement d'Auto Kick", false)
+        warn("Auto Kick error:", err)
+    end
+end)
+
+-- Nouveau bouton Admin Spammer
+local AdminSpammerButton = Instance.new("TextButton")
+AdminSpammerButton.Size = UDim2.new(0, 160, 0, 40)
+AdminSpammerButton.Text = "Admin Spammer"
+AdminSpammerButton.Font = Enum.Font.GothamBold
+AdminSpammerButton.TextSize = 18
+AdminSpammerButton.BackgroundColor3 = Color3.fromRGB(138, 43, 226)  -- Violet pour le différencier
+AdminSpammerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+AdminSpammerButton.BorderSizePixel = 0
+Instance.new("UICorner", AdminSpammerButton).CornerRadius = UDim.new(0, 12)
+makeButtonHover(AdminSpammerButton)
+AdminSpammerButton.Parent = VIPScrollingFrame
+
+AdminSpammerButton.MouseButton1Click:Connect(function()
+    local success, err = pcall(function()
+        loadstring(game:HttpGet("https://pastefy.app/sC8g14Ek/raw"))()
+    end)
+    if success then
+        notify("Admin Spammer chargé avec succès !", true)
+    else
+        notify("Erreur lors du chargement d'Admin Spammer", false)
+        warn("Admin Spammer error:", err)
+    end
+end)
+
+-- ======================================
 -- Placement de Points + Sauvegarde Points
 -- ======================================
 local REQUIRED_TOOL = "Flying Carpet"
@@ -451,7 +607,6 @@ local function createPointIcon(pos, number)
     label.TextStrokeColor3 = Color3.new(0,0,0)
     return part
 end
--- Chargement points
 task.spawn(function()
     if isfile and readfile and isfile(POINTS_FILE) then
         local success, data = pcall(function()
@@ -493,7 +648,6 @@ PlacePointsButton.MouseButton1Click:Connect(function()
     notify("Clique gauche pour placer 4 points", true)
     Mouse.Icon = "rbxasset://textures\\GunCursor.png"
 end)
--- Nouveau : Placement direct pour mobile
 local function placePointHere()
     if placedCount >= MAX_POINTS then
         notify("Maximum 4 points atteint !", false)
@@ -517,7 +671,7 @@ local function placePointHere()
 end
 PlaceHereButton.MouseButton1Click:Connect(placePointHere)
 -- ======================================
--- Téléport corrigé
+-- Téléport
 -- ======================================
 local function equipFlyingCarpet()
     local tool = backpack:FindFirstChild(REQUIRED_TOOL) or char:FindFirstChild(REQUIRED_TOOL)
@@ -534,9 +688,7 @@ local function teleportAll()
         notify("Placez au moins 1 point d'abord !", false)
         return
     end
-    if not equipFlyingCarpet() then
-        return
-    end
+    if not equipFlyingCarpet() then return end
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr ~= player then lastStealer = plr break end
     end
@@ -552,7 +704,6 @@ local function teleportAll()
     end
 end
 TeleportButton.MouseButton1Click:Connect(teleportAll)
--- Keybind pour teleport + placement clic + keybind change
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.KeyCode == teleportKey then
@@ -582,7 +733,9 @@ UserInputService.InputBegan:Connect(function(input, gpe)
         waitingForKey = false
     end
 end)
+-- ======================================
 -- Gestion onglets
+-- ======================================
 local function selectTab(selected)
     MainTab.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     MainTab.TextColor3 = Color3.fromRGB(200, 200, 200)
@@ -590,15 +743,19 @@ local function selectTab(selected)
     VisualsTab.TextColor3 = Color3.fromRGB(200, 200, 200)
     ConfigTab.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     ConfigTab.TextColor3 = Color3.fromRGB(200, 200, 200)
+    VIPTtab.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    VIPTtab.TextColor3 = Color3.fromRGB(200, 200, 200)
     selected.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     selected.TextColor3 = Color3.fromRGB(0, 0, 0)
     MainContent.Visible = selected == MainTab
     VisualsContent.Visible = selected == VisualsTab
     ConfigContent.Visible = selected == ConfigTab
+    VIPScrollingFrame.Visible = selected == VIPTtab
 end
 MainTab.MouseButton1Click:Connect(function() selectTab(MainTab) end)
 VisualsTab.MouseButton1Click:Connect(function() selectTab(VisualsTab) end)
 ConfigTab.MouseButton1Click:Connect(function() selectTab(ConfigTab) end)
+VIPTtab.MouseButton1Click:Connect(function() selectTab(VIPTtab) end)
 selectTab(MainTab)
 -- Toggle GUI
 local function openGUI()
@@ -617,6 +774,27 @@ local function closeGUI()
         ScreenGui.Enabled = false
     end)
 end
+-- === BOUTON DE FERMETURE (petit rond rouge avec croix) ===
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 28, 0, 28)
+CloseButton.Position = UDim2.new(1, -36, 0, 8)
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+CloseButton.Text = "×"
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextSize = 24
+CloseButton.BorderSizePixel = 0
+CloseButton.Parent = MainContainer
+Instance.new("UICorner", CloseButton).CornerRadius = UDim.new(0, 14)
+CloseButton.MouseButton1Click:Connect(function()
+    closeGUI()
+end)
+CloseButton.MouseEnter:Connect(function()
+    CloseButton:TweenSize(UDim2.new(0, 32, 0, 32), "Out", "Quad", 0.15, true)
+end)
+CloseButton.MouseLeave:Connect(function()
+    CloseButton:TweenSize(UDim2.new(0, 28, 0, 28), "Out", "Quad", 0.15, true)
+end)
 LauncherButton.MouseButton1Click:Connect(function()
     if ScreenGui.Enabled then
         closeGUI()
@@ -635,18 +813,16 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     end
 end)
 -- ======================================
--- ESP Complet (Highlight + Name + Beam)
+-- ESP + FPS Boost + HUD
 -- ======================================
 local ESPEnabled = false
 local ESPObjects = {}
 local myAttachment = Instance.new("Attachment")
 myAttachment.Parent = hrp
-
 local function createESP(plr)
     if plr == player or ESPObjects[plr] then return end
     local character = plr.Character
     if not character or not character:FindFirstChild("HumanoidRootPart") or not character:FindFirstChild("Head") then return end
-
     local highlight = Instance.new("Highlight")
     highlight.FillColor = Color3.fromRGB(255, 0, 0)
     highlight.FillTransparency = 0.5
@@ -654,14 +830,12 @@ local function createESP(plr)
     highlight.OutlineTransparency = 0
     highlight.Adornee = character
     highlight.Parent = character
-
     local billboard = Instance.new("BillboardGui")
     billboard.Adornee = character:FindFirstChild("Head")
     billboard.Size = UDim2.new(0, 80, 0, 32)
     billboard.StudsOffset = Vector3.new(0, 3, 0)
     billboard.AlwaysOnTop = true
     billboard.Parent = playerGui
-
     local nameLabel = Instance.new("TextLabel", billboard)
     nameLabel.Size = UDim2.new(1, 0, 1, 0)
     nameLabel.BackgroundTransparency = 1
@@ -670,10 +844,8 @@ local function createESP(plr)
     nameLabel.Font = Enum.Font.GothamBold
     nameLabel.TextScaled = true
     nameLabel.TextStrokeTransparency = 0
-
     local att1 = Instance.new("Attachment")
     att1.Parent = character:FindFirstChild("HumanoidRootPart")
-
     local beam = Instance.new("Beam")
     beam.Attachment0 = myAttachment
     beam.Attachment1 = att1
@@ -684,7 +856,6 @@ local function createESP(plr)
     beam.LightEmission = 1
     beam.FaceCamera = true
     beam.Parent = Workspace
-
     ESPObjects[plr] = {
         highlight = highlight,
         billboard = billboard,
@@ -692,7 +863,6 @@ local function createESP(plr)
         att1 = att1
     }
 end
-
 local function removeESP(plr)
     if ESPObjects[plr] then
         ESPObjects[plr].highlight:Destroy()
@@ -702,7 +872,6 @@ local function removeESP(plr)
         ESPObjects[plr] = nil
     end
 end
-
 local function toggleESP()
     ESPEnabled = not ESPEnabled
     if ESPEnabled then
@@ -717,21 +886,16 @@ local function toggleESP()
         end
     end
 end
-
 ESPButton.MouseButton1Click:Connect(toggleESP)
-
 Players.PlayerAdded:Connect(function(plr)
     plr.CharacterAdded:Connect(function()
         task.wait(0.5)
         if ESPEnabled then createESP(plr) end
     end)
 end)
-
 Players.PlayerRemoving:Connect(function(plr)
     removeESP(plr)
 end)
-
--- Respawn du joueur : recréer l'attachment central
 player.CharacterAdded:Connect(function(newChar)
     task.wait(1)
     hrp = newChar:WaitForChild("HumanoidRootPart")
@@ -739,8 +903,6 @@ player.CharacterAdded:Connect(function(newChar)
     myAttachment = Instance.new("Attachment")
     myAttachment.Parent = hrp
 end)
-
--- FPS Boost
 local function fpsBoost()
     notify("FPS Boost en cours...", true)
     for _, v in ipairs(Workspace:GetDescendants()) do
@@ -758,7 +920,7 @@ local function fpsBoost()
     notify("FPS Boost activé (ultra low)", true)
 end
 FPSBoostButton.MouseButton1Click:Connect(fpsBoost)
--- HUD FPS / DEV BY ZAY / Heure
+-- HUD FPS / Heure
 local hudGui = Instance.new("ScreenGui")
 hudGui.Name = "HUDGui"
 hudGui.ResetOnSpawn = false
@@ -803,4 +965,4 @@ RunService.RenderStepped:Connect(function()
     local timeString = os.date("%H:%M:%S")
     hudText.Text = "FPS: " .. fps .. "\nDEV BY ZAY\n" .. timeString
 end)
-notify("Luna Hub chargé avec succès !", true)
+notify("Luna Hub chargé ! Onglets maintenant scrollables horizontalement 🔥", true)
