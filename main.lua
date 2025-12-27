@@ -25,7 +25,7 @@ player.CharacterAdded:Connect(function(newChar)
     hrp = newChar:WaitForChild("HumanoidRootPart")
 end)
 -- ======================================
--- Whitelist par UserId (17 places au total)
+-- Whitelist par UserId
 -- ======================================
 local Whitelist = {
     9173033891, -- moi
@@ -35,23 +35,20 @@ local Whitelist = {
     1617845814, -- free le bon 13
     9212405626, -- ACHETEUR tic tac
     10133764831, -- mec a enlever bientot
-
-    -- === 10 places supplémentaires pour futurs VIP / acheteurs ===
-    0, -- Place 1  → remplace par un vrai UserId
-    0, -- Place 2
-    0, -- Place 3
-    0, -- Place 4
-    0, -- Place 5
-    0, -- Place 6
-    0, -- Place 7
-    0, -- Place 8
-    0, -- Place 9
-    0, -- Place 10
-    -- ======================================
+    0, -- Place supplémentaire 1
+    0, -- Place supplémentaire 2
+    0, -- Place supplémentaire 3
+    0, -- Place supplémentaire 4
+    0, -- Place supplémentaire 5
+    0, -- Place supplémentaire 6
+    0, -- Place supplémentaire 7
+    0, -- Place supplémentaire 8
+    0, -- Place supplémentaire 9
+    0, -- Place supplémentaire 10
 }
 local function isWhitelisted(userId)
     for _, id in pairs(Whitelist) do
-        if userId == id and id ~= 0 then return true end
+        if userId == id then return true end
     end
     return false
 end
@@ -460,7 +457,7 @@ AllowDisallowButton.MouseButton1Click:Connect(function()
         notify("Allow/Disallow script chargé !", true)
     else
         notify("Erreur lors du chargement Allow/Disallow", false)
-    end)
+    end
 end)
 local BlockInstantButton = Instance.new("TextButton")
 BlockInstantButton.Size = UDim2.new(0, 160, 0, 40)
@@ -481,7 +478,7 @@ BlockInstantButton.MouseButton1Click:Connect(function()
         notify("Block Instant chargé avec succès !", true)
     else
         notify("Erreur lors du chargement Block Instant", false)
-    end)
+    end
 end)
 local AutoKickButton = Instance.new("TextButton")
 AutoKickButton.Size = UDim2.new(0, 160, 0, 40)
