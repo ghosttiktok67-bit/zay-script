@@ -1,5 +1,5 @@
 -- ======================================
--- Luna Hub - Version Finale (Teleport fixe avec les 3 positions + système de points complètement supprimé)
+-- Zay Hub - Version Finale (Teleport fixe avec les 3 positions + système de points complètement supprimé)
 -- ======================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -50,14 +50,14 @@ end
 -- Launcher Icon
 -- ======================================
 local LauncherGui = Instance.new("ScreenGui")
-LauncherGui.Name = "LunaHubLauncher"
+LauncherGui.Name = "ZayHubLauncher"
 LauncherGui.ResetOnSpawn = false
 LauncherGui.Parent = playerGui
 local LauncherButton = Instance.new("TextButton")
 LauncherButton.Size = UDim2.new(0, 60, 0, 60)
 LauncherButton.Position = UDim2.new(1, -70, 1, -70)
 LauncherButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-LauncherButton.Text = "LH"
+LauncherButton.Text = "ZH"
 LauncherButton.TextColor3 = Color3.fromRGB(255, 0, 0)
 LauncherButton.Font = Enum.Font.GothamBold
 LauncherButton.TextSize = 30
@@ -142,7 +142,7 @@ end
 -- GUI principale avec onglets
 -- ======================================
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "LunaHubGUI"
+ScreenGui.Name = "ZayHubGUI"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Enabled = false
 ScreenGui.Parent = playerGui
@@ -166,7 +166,7 @@ end)
 local Title = Instance.new("TextLabel", MainContainer)
 Title.Size = UDim2.new(1, -16, 0, 32)
 Title.Position = UDim2.new(0, 8, 0, 8)
-Title.Text = "Luna Hub"
+Title.Text = "Zay Hub"
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
 Title.Font = Enum.Font.GothamBold
 Title.TextSize = 20
@@ -210,7 +210,7 @@ end
 local MainTab = createTab("Main")
 local VisualsTab = createTab("Visuals")
 local ConfigTab = createTab("Config")
-local VIPTtab = createTab("VIP")
+local VIPtab = createTab("VIP")
 -- Contenu des onglets
 local ContentFrame = Instance.new("Frame")
 ContentFrame.Size = UDim2.new(1, -24, 1, -84)
@@ -342,7 +342,7 @@ Instance.new("UICorner", ConfigListFrame).CornerRadius = UDim.new(0, 8)
 local ConfigListLayout = Instance.new("UIListLayout", ConfigListFrame)
 ConfigListLayout.Padding = UDim.new(0, 5)
 local savedConfigs = {}
-local CONFIG_FILE = "LunaHub_Configs.json"
+local CONFIG_FILE = "ZayHub_Configs.json"
 local function updateConfigList()
     ConfigListFrame:ClearAllChildren()
     ConfigListLayout.Parent = nil
@@ -526,9 +526,9 @@ local spots = {
 }
 local function equipFlyingCarpet()
     local tool = char:FindFirstChild(REQUIRED_TOOL) or backpack:FindFirstChild(REQUIRED_TOOL)
-    if not tool then 
-        notify("Flying Carpet non trouvé", false) 
-        return false 
+    if not tool then
+        notify("Flying Carpet non trouvé", false)
+        return false
     end
     humanoid:EquipTool(tool)
     while char:FindFirstChildOfClass("Tool") ~= tool do task.wait() end
@@ -578,19 +578,19 @@ local function selectTab(selected)
     VisualsTab.TextColor3 = Color3.fromRGB(200, 200, 200)
     ConfigTab.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
     ConfigTab.TextColor3 = Color3.fromRGB(200, 200, 200)
-    VIPTtab.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    VIPTtab.TextColor3 = Color3.fromRGB(200, 200, 200)
+    VIPtab.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+    VIPtab.TextColor3 = Color3.fromRGB(200, 200, 200)
     selected.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
     selected.TextColor3 = Color3.fromRGB(0, 0, 0)
     MainContent.Visible = selected == MainTab
     VisualsContent.Visible = selected == VisualsTab
     ConfigContent.Visible = selected == ConfigTab
-    VIPScrollingFrame.Visible = selected == VIPTtab
+    VIPScrollingFrame.Visible = selected == VIPtab
 end
 MainTab.MouseButton1Click:Connect(function() selectTab(MainTab) end)
 VisualsTab.MouseButton1Click:Connect(function() selectTab(VisualsTab) end)
 ConfigTab.MouseButton1Click:Connect(function() selectTab(ConfigTab) end)
-VIPTtab.MouseButton1Click:Connect(function() selectTab(VIPTtab) end)
+VIPtab.MouseButton1Click:Connect(function() selectTab(VIPtab) end)
 selectTab(MainTab)
 -- Toggle GUI
 local function openGUI()
@@ -799,4 +799,4 @@ RunService.RenderStepped:Connect(function()
     local timeString = os.date("%H:%M:%S")
     hudText.Text = "FPS: " .. fps .. "\nDEV BY ZAY\n" .. timeString
 end)
-notify("Luna Hub chargé ! Teleport fixe activé avec les 3 positions 🔥", true)
+notify("Zay Hub chargé ! Teleport fixe activé avec les 3 positions 🔥", true)
