@@ -1,5 +1,5 @@
 -- ======================================
--- Luna Hub - Version Finale (VIP scrollable + barre visible + bouton Block Instant + Fix onglets horizontaux scrollables)
+-- Luna Hub - Version Finale (Teleport fixe avec les 3 positions + système de points complètement supprimé)
 -- ======================================
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
@@ -173,7 +173,7 @@ Title.TextSize = 20
 Title.BackgroundTransparency = 1
 Title.TextStrokeTransparency = 0.2
 Title.TextXAlignment = Enum.TextXAlignment.Center
--- === MODIFICATION : Barre d'onglets scrollable horizontalement ===
+-- Barre d'onglets scrollable horizontalement
 local TabScroll = Instance.new("ScrollingFrame")
 TabScroll.Size = UDim2.new(1, -16, 0, 32)
 TabScroll.Position = UDim2.new(0, 8, 0, 42)
@@ -189,7 +189,6 @@ TabListLayout.FillDirection = Enum.FillDirection.Horizontal
 TabListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 TabListLayout.Padding = UDim.new(0, 8)
 TabListLayout.Parent = TabScroll
--- Effet rainbow sur la barre de scroll des onglets
 local hueTabScroll = 0
 RunService.RenderStepped:Connect(function(dt)
     hueTabScroll = (hueTabScroll + dt * 0.5) % 1
@@ -212,7 +211,6 @@ local MainTab = createTab("Main")
 local VisualsTab = createTab("Visuals")
 local ConfigTab = createTab("Config")
 local VIPTtab = createTab("VIP")
--- ======================================
 -- Contenu des onglets
 local ContentFrame = Instance.new("Frame")
 ContentFrame.Size = UDim2.new(1, -24, 1, -84)
@@ -234,17 +232,14 @@ ConfigContent.Size = UDim2.new(1, 0, 1, 0)
 ConfigContent.BackgroundTransparency = 1
 ConfigContent.Parent = ContentFrame
 ConfigContent.Visible = false
--- Onglet VIP avec scroll + barre visible
 local VIPScrollingFrame = Instance.new("ScrollingFrame")
 VIPScrollingFrame.Size = UDim2.new(1, 0, 1, 0)
 VIPScrollingFrame.BackgroundTransparency = 1
 VIPScrollingFrame.BorderSizePixel = 0
 VIPScrollingFrame.ScrollBarThickness = 10
-VIPScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(255, 255, 255)
 VIPScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
 VIPScrollingFrame.Visible = false
 VIPScrollingFrame.Parent = ContentFrame
--- Effet rainbow sur la barre de scroll VIP
 local hueVIPScroll = 0
 RunService.RenderStepped:Connect(function(dt)
     hueVIPScroll = (hueVIPScroll + dt * 0.5) % 1
@@ -269,7 +264,7 @@ local function makeButtonHover(button)
         hoverStroke.Transparency = 1
     end)
 end
--- Boutons Main
+-- Bouton Teleport (seul bouton dans Main maintenant)
 local TeleportButton = Instance.new("TextButton", MainContent)
 TeleportButton.Size = UDim2.new(0, 160, 0, 40)
 TeleportButton.Position = UDim2.new(0.5, -80, 0, 10)
@@ -281,39 +276,6 @@ TeleportButton.TextColor3 = Color3.fromRGB(0, 0, 0)
 TeleportButton.BorderSizePixel = 0
 Instance.new("UICorner", TeleportButton).CornerRadius = UDim.new(0, 12)
 makeButtonHover(TeleportButton)
-local PlacePointsButton = Instance.new("TextButton", MainContent)
-PlacePointsButton.Size = UDim2.new(0, 160, 0, 40)
-PlacePointsButton.Position = UDim2.new(0.5, -80, 0, 60)
-PlacePointsButton.Text = "Placer Points (4)"
-PlacePointsButton.Font = Enum.Font.GothamBold
-PlacePointsButton.TextSize = 16
-PlacePointsButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-PlacePointsButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-PlacePointsButton.BorderSizePixel = 0
-Instance.new("UICorner", PlacePointsButton).CornerRadius = UDim.new(0, 12)
-makeButtonHover(PlacePointsButton)
-local PlaceHereButton = Instance.new("TextButton", MainContent)
-PlaceHereButton.Size = UDim2.new(0, 160, 0, 40)
-PlaceHereButton.Position = UDim2.new(0.5, -80, 0, 110)
-PlaceHereButton.Text = "Placer Point Ici (Mobile)"
-PlaceHereButton.Font = Enum.Font.GothamBold
-PlaceHereButton.TextSize = 15
-PlaceHereButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
-PlaceHereButton.TextColor3 = Color3.fromRGB(255, 255, 255)
-PlaceHereButton.BorderSizePixel = 0
-Instance.new("UICorner", PlaceHereButton).CornerRadius = UDim.new(0, 12)
-makeButtonHover(PlaceHereButton)
-local SavePointsButton = Instance.new("TextButton", MainContent)
-SavePointsButton.Size = UDim2.new(0, 160, 0, 40)
-SavePointsButton.Position = UDim2.new(0.5, -80, 0, 160)
-SavePointsButton.Text = "Sauvegarder Points"
-SavePointsButton.Font = Enum.Font.GothamBold
-SavePointsButton.TextSize = 16
-SavePointsButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
-SavePointsButton.TextColor3 = Color3.fromRGB(0, 0, 0)
-SavePointsButton.BorderSizePixel = 0
-Instance.new("UICorner", SavePointsButton).CornerRadius = UDim.new(0, 12)
-makeButtonHover(SavePointsButton)
 -- Boutons Visuals
 local ESPButton = Instance.new("TextButton", VisualsContent)
 ESPButton.Size = UDim2.new(0, 160, 0, 40)
@@ -434,7 +396,7 @@ KeybindButton.MouseButton1Click:Connect(function()
     waitingForKey = true
 end)
 -- ======================================
--- Onglet VIP - Boutons
+-- Onglet VIP - Boutons (tout intact)
 -- ======================================
 local VIPTitle = Instance.new("TextLabel")
 VIPTitle.Size = UDim2.new(0, 200, 0, 50)
@@ -487,7 +449,6 @@ AllowDisallowButton.MouseButton1Click:Connect(function()
         notify("Erreur lors du chargement Allow/Disallow", false)
     end
 end)
--- Nouveau bouton Block Instant
 local BlockInstantButton = Instance.new("TextButton")
 BlockInstantButton.Size = UDim2.new(0, 160, 0, 40)
 BlockInstantButton.Text = "Block Instant"
@@ -509,8 +470,6 @@ BlockInstantButton.MouseButton1Click:Connect(function()
         notify("Erreur lors du chargement Block Instant", false)
     end
 end)
-
--- Nouveau bouton Auto Kick
 local AutoKickButton = Instance.new("TextButton")
 AutoKickButton.Size = UDim2.new(0, 160, 0, 40)
 AutoKickButton.Text = "Auto Kick"
@@ -522,7 +481,6 @@ AutoKickButton.BorderSizePixel = 0
 Instance.new("UICorner", AutoKickButton).CornerRadius = UDim.new(0, 12)
 makeButtonHover(AutoKickButton)
 AutoKickButton.Parent = VIPScrollingFrame
-
 AutoKickButton.MouseButton1Click:Connect(function()
     local success, err = pcall(function()
         loadstring(game:HttpGet("https://pastefy.app/avJfNdOe/raw"))()
@@ -534,20 +492,17 @@ AutoKickButton.MouseButton1Click:Connect(function()
         warn("Auto Kick error:", err)
     end
 end)
-
--- Nouveau bouton Admin Spammer
 local AdminSpammerButton = Instance.new("TextButton")
 AdminSpammerButton.Size = UDim2.new(0, 160, 0, 40)
 AdminSpammerButton.Text = "Admin Spammer"
 AdminSpammerButton.Font = Enum.Font.GothamBold
 AdminSpammerButton.TextSize = 18
-AdminSpammerButton.BackgroundColor3 = Color3.fromRGB(138, 43, 226)  -- Violet pour le différencier
+AdminSpammerButton.BackgroundColor3 = Color3.fromRGB(138, 43, 226)
 AdminSpammerButton.TextColor3 = Color3.fromRGB(255, 255, 255)
 AdminSpammerButton.BorderSizePixel = 0
 Instance.new("UICorner", AdminSpammerButton).CornerRadius = UDim.new(0, 12)
 makeButtonHover(AdminSpammerButton)
 AdminSpammerButton.Parent = VIPScrollingFrame
-
 AdminSpammerButton.MouseButton1Click:Connect(function()
     local success, err = pcall(function()
         loadstring(game:HttpGet("https://pastefy.app/sC8g14Ek/raw"))()
@@ -559,174 +514,54 @@ AdminSpammerButton.MouseButton1Click:Connect(function()
         warn("Admin Spammer error:", err)
     end
 end)
-
 -- ======================================
--- Placement de Points + Sauvegarde Points
+-- Téléport intégré du deuxième script
 -- ======================================
 local REQUIRED_TOOL = "Flying Carpet"
 local lastStealer = nil
-local customSpots = {}
-local pointIcons = {}
-local MAX_POINTS = 4
-local placingPoints = false
-local placedCount = 0
-local POINTS_FILE = "LunaHub_Points.json"
-local function clearPoints()
-    for _, icon in ipairs(pointIcons) do
-        if icon and icon.Parent then icon:Destroy() end
-    end
-    pointIcons = {}
-    customSpots = {}
-    placedCount = 0
-    placingPoints = false
-    Mouse.Icon = ""
-end
-local function createPointIcon(pos, number)
-    local part = Instance.new("Part")
-    part.Anchored = true
-    part.CanCollide = false
-    part.Transparency = 0.4
-    part.Size = Vector3.new(3, 3, 3)
-    part.Position = pos + Vector3.new(0, 1.5, 0)
-    part.Color = Color3.fromRGB(255, 0, 0)
-    part.Shape = Enum.PartType.Ball
-    part.Material = Enum.Material.Neon
-    part.Parent = Workspace
-    local billboard = Instance.new("BillboardGui", part)
-    billboard.Size = UDim2.new(0, 60, 0, 60)
-    billboard.AlwaysOnTop = true
-    billboard.StudsOffset = Vector3.new(0, 2, 0)
-    local label = Instance.new("TextLabel", billboard)
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.BackgroundTransparency = 1
-    label.Text = tostring(number)
-    label.TextColor3 = Color3.new(1,1,1)
-    label.Font = Enum.Font.GothamBlack
-    label.TextSize = 36
-    label.TextStrokeTransparency = 0
-    label.TextStrokeColor3 = Color3.new(0,0,0)
-    return part
-end
-task.spawn(function()
-    if isfile and readfile and isfile(POINTS_FILE) then
-        local success, data = pcall(function()
-            return HttpService:JSONDecode(readfile(POINTS_FILE))
-        end)
-        if success and data and #data > 0 then
-            for i, comp in ipairs(data) do
-                local cf = CFrame.new(unpack(comp))
-                table.insert(customSpots, cf)
-                table.insert(pointIcons, createPointIcon(cf.Position, i))
-            end
-            placedCount = #customSpots
-            notify(#customSpots .. " points chargés depuis sauvegarde !", true)
-        end
-    end
-end)
-local function savePoints()
-    if #customSpots == 0 then
-        notify("Aucun point à sauvegarder", false)
-        return
-    end
-    local data = {}
-    for _, cf in ipairs(customSpots) do
-        table.insert(data, {cf:GetComponents()})
-    end
-    local json = HttpService:JSONEncode(data)
-    if writefile then
-        writefile(POINTS_FILE, json)
-        notify(#customSpots .. " points sauvegardés !", true)
-    else
-        notify("writefile non supporté", false)
-    end
-end
-SavePointsButton.MouseButton1Click:Connect(savePoints)
-PlacePointsButton.MouseButton1Click:Connect(function()
-    clearPoints()
-    placingPoints = true
-    placedCount = 0
-    notify("Clique gauche pour placer 4 points", true)
-    Mouse.Icon = "rbxasset://textures\\GunCursor.png"
-end)
-local function placePointHere()
-    if placedCount >= MAX_POINTS then
-        notify("Maximum 4 points atteint !", false)
-        return
-    end
-    if not hrp then return end
-    local origin = hrp.Position + Vector3.new(0, 5, 0)
-    local rayParams = RaycastParams.new()
-    rayParams.FilterDescendantsInstances = {char}
-    rayParams.FilterType = Enum.RaycastFilterType.Exclude
-    local result = Workspace:Raycast(origin, Vector3.new(0, -50, 0), rayParams)
-    local finalPos = result and result.Position or (hrp.Position - Vector3.new(0, 3, 0))
-    placedCount = placedCount + 1
-    local cframe = CFrame.new(finalPos) * CFrame.Angles(0, math.rad(-30.53), 0)
-    table.insert(customSpots, cframe)
-    table.insert(pointIcons, createPointIcon(finalPos, placedCount))
-    notify("Point " .. placedCount .. "/4 placé ici !", true)
-    if placedCount == MAX_POINTS then
-        savePoints()
-    end
-end
-PlaceHereButton.MouseButton1Click:Connect(placePointHere)
--- ======================================
--- Téléport
--- ======================================
+local spots = {
+    CFrame.new(-402.18, -6.34, 131.83) * CFrame.Angles(0, math.rad(-20.08), 0),
+    CFrame.new(-416.66, -6.34, -2.05) * CFrame.Angles(0, math.rad(-62.89), 0),
+    CFrame.new(-329.37, -4.68, 18.12) * CFrame.Angles(0, math.rad(-30.53), 0)
+}
 local function equipFlyingCarpet()
-    local tool = backpack:FindFirstChild(REQUIRED_TOOL) or char:FindFirstChild(REQUIRED_TOOL)
-    if not tool then
-        notify("Flying Carpet non trouvé", false)
-        return false
+    local tool = char:FindFirstChild(REQUIRED_TOOL) or backpack:FindFirstChild(REQUIRED_TOOL)
+    if not tool then 
+        notify("Flying Carpet non trouvé", false) 
+        return false 
     end
     humanoid:EquipTool(tool)
-    task.wait(0.5)
+    while char:FindFirstChildOfClass("Tool") ~= tool do task.wait() end
     return true
 end
-local function teleportAll()
-    if #customSpots == 0 then
-        notify("Placez au moins 1 point d'abord !", false)
-        return
+local function block(plr)
+    if not plr or plr == player then return end
+    local success = pcall(function()
+        StarterGui:SetCore("PromptBlockPlayer", plr)
+    end)
+    if success then
+        notify("Utilisateur " .. plr.Name .. " bloqué", true)
+    else
+        notify("Impossible de bloquer " .. plr.Name, false)
     end
+end
+local function teleportAll()
     if not equipFlyingCarpet() then return end
     for _, plr in ipairs(Players:GetPlayers()) do
         if plr ~= player then lastStealer = plr break end
     end
-    for _, spot in ipairs(customSpots) do
+    for _, spot in ipairs(spots) do
         hrp.CFrame = spot
-        task.wait(0.15)
+        task.wait(0.12)
     end
-    notify("Téléportation aux points placés réussie !", true)
-    if lastStealer then
-        pcall(function()
-            StarterGui:SetCore("PromptBlockPlayer", lastStealer)
-        end)
-    end
+    notify("Téléportation effectuée", true)
+    if lastStealer then block(lastStealer) end
 end
 TeleportButton.MouseButton1Click:Connect(teleportAll)
 UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.KeyCode == teleportKey then
         teleportAll()
-    elseif placingPoints and input.UserInputType == Enum.UserInputType.MouseButton1 and placedCount < MAX_POINTS then
-        local rayParams = RaycastParams.new()
-        rayParams.FilterDescendantsInstances = {char}
-        rayParams.FilterType = Enum.RaycastFilterType.Exclude
-        local ray = Camera:ScreenPointToRay(Mouse.X, Mouse.Y)
-        local result = Workspace:Raycast(ray.Origin, ray.Direction * 1000, rayParams)
-        if result then
-            placedCount = placedCount + 1
-            local pos = result.Position
-            local cframe = CFrame.new(pos) * CFrame.Angles(0, math.rad(-30.53), 0)
-            table.insert(customSpots, cframe)
-            table.insert(pointIcons, createPointIcon(pos, placedCount))
-            notify("Point " .. placedCount .. "/4 placé !", true)
-            if placedCount == MAX_POINTS then
-                placingPoints = false
-                Mouse.Icon = ""
-                savePoints()
-            end
-        end
     elseif waitingForKey and input.UserInputType == Enum.UserInputType.Keyboard then
         teleportKey = input.KeyCode
         KeybindButton.Text = "Keybind: [" .. teleportKey.Name .. "]"
@@ -774,7 +609,6 @@ local function closeGUI()
         ScreenGui.Enabled = false
     end)
 end
--- === BOUTON DE FERMETURE (petit rond rouge avec croix) ===
 local CloseButton = Instance.new("TextButton")
 CloseButton.Size = UDim2.new(0, 28, 0, 28)
 CloseButton.Position = UDim2.new(1, -36, 0, 8)
@@ -813,7 +647,7 @@ UserInputService.InputBegan:Connect(function(input, gpe)
     end
 end)
 -- ======================================
--- ESP + FPS Boost + HUD
+-- ESP + FPS Boost + HUD (tout intact comme dans ton script original)
 -- ======================================
 local ESPEnabled = false
 local ESPObjects = {}
@@ -965,4 +799,4 @@ RunService.RenderStepped:Connect(function()
     local timeString = os.date("%H:%M:%S")
     hudText.Text = "FPS: " .. fps .. "\nDEV BY ZAY\n" .. timeString
 end)
-notify("Luna Hub chargé ! Onglets maintenant scrollables horizontalement 🔥", true)
+notify("Luna Hub chargé ! Teleport fixe activé avec les 3 positions 🔥", true)
