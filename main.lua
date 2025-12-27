@@ -34,17 +34,17 @@ local Whitelist = {
     4269265728, -- acheteur 10euro
     1617845814, -- free le bon 13
     9212405626, -- ACHETEUR tic tac
-    10133764831, -- mec a enlever bientot
-    0, -- Place supplémentaire 1
-    0, -- Place supplémentaire 2
-    0, -- Place supplémentaire 3
-    0, -- Place supplémentaire 4
-    0, -- Place supplémentaire 5
-    0, -- Place supplémentaire 6
-    0, -- Place supplémentaire 7
-    0, -- Place supplémentaire 8
-    0, -- Place supplémentaire 9
-    0, -- Place supplémentaire 10
+    1013376483, -- mec a enlever bientot
+    9173033891, -- Place supplémentaire 1
+    9173033891, -- Place supplémentaire 2
+    9173033891, -- Place supplémentaire 3
+    9173033891, -- Place supplémentaire 4
+    9173033891, -- Place supplémentaire 5
+    9173033891, -- Place supplémentaire 6
+    9173033891, -- Place supplémentaire 7
+    9173033891, -- Place supplémentaire 8
+    9173033891, -- Place supplémentaire 9
+    9173033891, -- Place supplémentaire 10
 }
 local function isWhitelisted(userId)
     for _, id in pairs(Whitelist) do
