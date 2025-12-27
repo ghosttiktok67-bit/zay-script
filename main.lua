@@ -34,17 +34,7 @@ local Whitelist = {
     4269265728, -- acheteur 10euro
     1617845814, -- free le bon 13
     9212405626, -- ACHETEUR tic tac
-    1013376483, -- mec a enlever bientot
-    9173033891, -- Place supplémentaire 1
-    9173033891, -- Place supplémentaire 2
-    9173033891, -- Place supplémentaire 3
-    9173033891, -- Place supplémentaire 4
-    9173033891, -- Place supplémentaire 5
-    9173033891, -- Place supplémentaire 6
-    9173033891, -- Place supplémentaire 7
-    9173033891, -- Place supplémentaire 8
-    9173033891, -- Place supplémentaire 9
-    9173033891, -- Place supplémentaire 10
+    10133764831, -- mec a enlever bientot
 }
 local function isWhitelisted(userId)
     for _, id in pairs(Whitelist) do
@@ -457,7 +447,7 @@ AllowDisallowButton.MouseButton1Click:Connect(function()
         notify("Allow/Disallow script chargé !", true)
     else
         notify("Erreur lors du chargement Allow/Disallow", false)
-    end
+    end)
 end)
 local BlockInstantButton = Instance.new("TextButton")
 BlockInstantButton.Size = UDim2.new(0, 160, 0, 40)
@@ -478,7 +468,7 @@ BlockInstantButton.MouseButton1Click:Connect(function()
         notify("Block Instant chargé avec succès !", true)
     else
         notify("Erreur lors du chargement Block Instant", false)
-    end
+    end)
 end)
 local AutoKickButton = Instance.new("TextButton")
 AutoKickButton.Size = UDim2.new(0, 160, 0, 40)
