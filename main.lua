@@ -37,7 +37,7 @@ local Whitelist = {
     4269265728, -- acheteur 10euro
     1617845814, -- free le bon 13
     1234454555, -- ACHETEUR KEBECOIS
-    10133764831,-- mec a enlever bientot
+    3212312321,-- Ami 
     9212405626, -- tic tac couz a 13
     0, -- Place libre 2
     0, -- Place libre 3
