@@ -39,7 +39,7 @@ local Whitelist = {
     1234454555, -- ACHETEUR KEBECOIS
     3212312321,-- Ami 
     9212405626, -- tic tac couz a 13
-    0, -- Place libre 2
+    4292535585, -- fury
     0, -- Place libre 3
     0, -- Place libre 4
     0, -- Place libre 5
