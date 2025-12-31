@@ -40,7 +40,7 @@ local Whitelist = {
     3212312321,-- Ami 
     9212405626, -- tic tac couz a 13
     4292535585, -- fury
-    0, -- Place libre 3
+    1387572025, -- secret combi 305M
     0, -- Place libre 4
     0, -- Place libre 5
     0, -- Place libre 6
